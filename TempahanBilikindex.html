@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Tempahan Bilik - VocKAF</title>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Excel Export Library -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        /* Semua CSS sama seperti sebelumnya */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .date-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 18px;
+            background: white;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .tab.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"],
+        .form-group input[type="password"],
+        .form-group select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+
+        /* Room Options */
+        .room-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .room-option {
+            position: relative;
+        }
+
+        .room-option input[type="radio"] {
+            display: none;
+        }
+
+        .room-option label {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .room-option input[type="radio"]:checked + label {
+            background: #e3f2fd;
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        .room-option label i {
+            font-size: 1.5rem;
+        }
+
+        .room-option label span {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Time Grid */
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .time-option {
+            display: block;
+            position: relative;
+        }
+
+        .time-option input[type="checkbox"] {
+            display: none;
+        }
+
+        .time-option span {
+            display: block;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .time-option input[type="checkbox"]:checked + span {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .time-option.disabled span {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .time-option.disabled span::after {
+            content: "TELAH DITEMPAH";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        /* Buttons */
+        .btn-submit, .btn-filter, .btn-admin, .btn-admin-action {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover, .btn-filter:hover, .btn-admin:hover {
+            background: #2980b9;
+        }
+
+        .btn-admin-action {
+            background: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .btn-admin-action:hover {
+            background: #219653;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-section input[type="date"] {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        /* Bookings List */
+        .bookings-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        .booking-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #3498db;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .booking-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .booking-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .booking-room {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+
+        .booking-name {
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .booking-details {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .booking-time {
+            background: #e3f2fd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .booking-time.booked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Admin Functions */
+        .admin-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .admin-booking-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        .admin-booking-item:hover {
+            border-color: #3498db;
+        }
+
+        .admin-booking-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-edit, .btn-delete-admin {
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #e67e22;
+        }
+
+        .btn-delete-admin {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete-admin:hover {
+            background: #c0392b;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-save, .btn-cancel, .btn-delete {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        .btn-save {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #219653;
+        }
+
+        .btn-cancel {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c0392b;
+        }
+
+        /* Message / Notification */
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+            }
+        }
+
+        .message.success {
+            background: #27ae60;
+            border-left: 5px solid #219653;
+        }
+
+        .message.error {
+            background: #e74c3c;
+            border-left: 5px solid #c0392b;
+        }
+
+        .message.info {
+            background: #3498db;
+            border-left: 5px solid #2980b9;
+        }
+
+        .message.warning {
+            background: #f39c12;
+            border-left: 5px solid #e67e22;
+        }
+
+        /* Loading Indicator */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #7f8c8d;
+        }
+
+        .firebase-status {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .no-bookings {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .room-section {
+            margin-bottom: 30px;
+        }
+
+        .room-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* Success Animation for Actions */
+        .success-flash {
+            animation: successFlash 0.5s ease;
+        }
+
+        @keyframes successFlash {
+            0% { background-color: white; }
+            50% { background-color: #d4edda; }
+            100% { background-color: white; }
+        }
+
+        /* Conflict Warning */
+        .conflict-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            color: #856404;
+        }
+
+        .conflict-warning h4 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .conflict-list {
+            list-style-type: none;
+            margin-top: 10px;
+        }
+
+        .conflict-list li {
+            padding: 8px;
+            background: #f8f9fa;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            border-left: 4px solid #f39c12;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .room-options, .time-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .admin-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-booking-controls {
+                flex-direction: column;
+            }
+            
+            .message {
+                left: 20px;
+                right: 20px;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1><i class="fas fa-calendar-alt"></i> Sistem Tempahan Bilik</h1>
+            <p class="subtitle">VocKAF - Tempahan Pusat Sumber Alamanda, Bilik APD & Bilik Self Learning</p>
+            <div class="date-display">
+                <span id="current-date"></span>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="booking">Buat Tempahan</button>
+            <button class="tab" data-tab="view">Lihat Tempahan</button>
+            <button class="tab" data-tab="admin">Admin</button>
+        </div>
+
+        <!-- Booking Form -->
+        <div id="booking" class="tab-content active">
+            <div class="card">
+                <h2><i class="fas fa-plus-circle"></i> Buat Tempahan Baru</h2>
+                <form id="booking-form">
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> Nama Penempah</label>
+                        <input type="text" id="name" placeholder="Masukkan nama penuh" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="room"><i class="fas fa-door-open"></i> Pilih Bilik</label>
+                        <div class="room-options">
+                            <div class="room-option">
+                                <input type="radio" id="room1" name="room" value="Pusat Sumber Alamanda" required>
+                                <label for="room1">
+                                    <i class="fas fa-book"></i>
+                                    <span>Pusat Sumber Alamanda</span>
+                                </label>
+                            </div>
+                            <div class="room-option">
+                                <input type="radio" id="room2" name="room" value="Bilik APD">
+                                <label for="room2">
+                                    <i class="fas fa-desktop"></i>
+                                    <span>Bilik APD</span>
+                                </label>
+                            </div>
+                            <div class="room-option">
+                                <input type="radio" id="room3" name="room" value="Bilik Self Learning">
+                                <label for="room3">
+                                    <i class="fas fa-graduation-cap"></i>
+                                    <span>Bilik Self Learning</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date"><i class="fas fa-calendar"></i> Tarikh Tempahan</label>
+                        <input type="date" id="date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-clock"></i> Masa Tempahan (Pilih satu atau lebih)</label>
+                        <div class="time-grid" id="time-grid">
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="8:00-9:00">
+                                <span>8:00-9:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="9:00-10:00">
+                                <span>9:00-10:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="10:00-11:00">
+                                <span>10:00-11:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="11:00-12:00">
+                                <span>11:00-12:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="12:00-13:00">
+                                <span>12:00-1:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="13:00-14:00">
+                                <span>1:00-2:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="14:00-15:00">
+                                <span>2:00-3:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="15:00-16:00">
+                                <span>3:00-4:00</span>
+                            </label>
+                            <label class="time-option">
+                                <input type="checkbox" name="time" value="16:00-17:00">
+                                <span>4:00-5:00</span>
+                            </label>
+                        </div>
+                        <div id="time-warning" class="conflict-warning hidden">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Masa Telah Ditempah</h4>
+                            <p>Masa berikut telah ditempah oleh orang lain:</p>
+                            <ul id="conflict-list" class="conflict-list"></ul>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-check-circle"></i> Simpan Tempahan
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- View Bookings -->
+        <div id="view" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-list"></i> Lihat Tempahan</h2>
+                <div class="filter-section">
+                    <label for="filter-date">Pilih Tarikh:</label>
+                    <input type="date" id="filter-date">
+                    <button id="load-bookings" class="btn-filter">
+                        <i class="fas fa-search"></i> Muat Tempahan
+                    </button>
+                </div>
+                
+                <div class="bookings-container">
+                    <div id="bookings-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="admin" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-user-shield"></i> Panel Admin</h2>
+                
+                <!-- Admin Login -->
+                <div id="admin-login-section">
+                    <h3><i class="fas fa-lock"></i> Log Masuk Admin</h3>
+                    <div class="form-group">
+                        <label for="admin-password">Kata Laluan Admin</label>
+                        <input type="password" id="admin-password" placeholder="Masukkan kata laluan">
+                    </div>
+                    <button id="admin-login" class="btn-admin">
+                        <i class="fas fa-sign-in-alt"></i> Log Masuk
+                    </button>
+                </div>
+
+                <!-- Admin Functions (hidden by default) -->
+                <div id="admin-functions" class="hidden">
+                    <h3><i class="fas fa-cogs"></i> Fungsi Admin</h3>
+                    
+                    <div class="admin-actions">
+                        <button id="download-excel" class="btn-admin-action">
+                            <i class="fas fa-file-excel"></i> Muat Turun Data (Excel)
+                        </button>
+                        <button id="clear-old-data" class="btn-admin-action">
+                            <i class="fas fa-trash"></i> Hapus Data Lama (30+ hari)
+                        </button>
+                    </div>
+
+                    <div class="admin-bookings">
+                        <h3><i class="fas fa-edit"></i> Urus Tempahan</h3>
+                        <div id="admin-bookings-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer style="text-align:center; margin-top:30px; font-size:14px; color:#555;">
+    <p>
+        Sistem Tempahan Bilik VocKAF &copy; <span id="current-year"></span><br>
+        Powered by <strong>AzharMazlanEtn</strong>
+    </p>
+
+    <p class="firebase-status">
+        Status  website: 
+        <span id="firebase-status">Memuat...</span>
+    </p>
+
+    <p>
+        Sebarang masalah sila hubungi 
+        <a href="https://wa.me/601169387861?text=Assalamualaikum%20En.%20Azhar,%20saya%20perlukan%20bantuan%20berkaitan%20Sistem%20Tempahan%20Bilik."
+           target="_blank"
+           style="color:#25D366; text-decoration:none; font-weight:bold;">
+            En. Azhar (if urgent just call)
+        </a>
+    </p>
+</footer>
+
+<script>
+    document.getElementById("current-year").textContent = new Date().getFullYear();
+</script>
+
+    </div>
+
+    <!-- Modal for editing booking -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3><i class="fas fa-edit"></i> Edit Tempahan</h3>
+            <form id="edit-form">
+                <input type="hidden" id="edit-id">
+                <div class="form-group">
+                    <label for="edit-name">Nama Penempah</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-room">Bilik</label>
+                    <select id="edit-room" required>
+                        <option value="Pusat Sumber Alamanda">Pusat Sumber Alamanda</option>
+                        <option value="Bilik APD">Bilik APD</option>
+                        <option value="Bilik Self Learning">Bilik Self Learning</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-date">Tarikh</label>
+                    <input type="date" id="edit-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Masa Tempahan</label>
+                    <div class="time-grid" id="edit-time-grid">
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="8:00-9:00">
+                            <span>8:00-9:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="9:00-10:00">
+                            <span>9:00-10:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="10:00-11:00">
+                            <span>10:00-11:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="11:00-12:00">
+                            <span>11:00-12:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="12:00-13:00">
+                            <span>12:00-13:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="13:00-14:00">
+                            <span>1:00-2:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="14:00-15:00">
+                            <span>2:00-3:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="15:00-16:00">
+                            <span>3:00-4:00</span>
+                        </label>
+                        <label class="time-option">
+                            <input type="checkbox" name="edit-time" value="16:00-17:00">
+                            <span>4:00-5:00</span>
+                        </label>
+                    </div>
+                    <div id="edit-time-warning" class="conflict-warning hidden">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Masa Telah Ditempah</h4>
+                        <p>Masa berikut telah ditempah oleh orang lain:</p>
+                        <ul id="edit-conflict-list" class="conflict-list"></ul>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-save">Simpan</button>
+                    <button type="button" id="cancel-edit" class="btn-cancel">Batal</button>
+                    <button type="button" id="delete-booking" class="btn-delete">Hapus Tempahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="message" class="message hidden"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Memproses...</div>
+    </div>
+
+    <!-- JavaScript Code -->
+    <script>
+        // Firebase Configuration - PASTIKAN ANDA UPDATE INI!
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZgaa051vDGPlhcXMTV1iPPXpoi3BPd28",
+            authDomain: "tempahan-bilik-f7e7c.firebaseapp.com",
+            databaseURL: "https://tempahan-bilik-f7e7c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "tempahan-bilik-f7e7c",
+            storageBucket: "tempahan-bilik-f7e7c.firebasestorage.app",
+            messagingSenderId: "36579144280",
+            appId: "1:36579144280:web:7b61676951ef923599d02d",
+            measurementId: "G-NLLWD0LFVX"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Main application initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Initializing application...");
+            
+            // DOM Elements
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const bookingForm = document.getElementById('booking-form');
+            const bookingsList = document.getElementById('bookings-list');
+            const adminLoginBtn = document.getElementById('admin-login');
+            const adminFunctions = document.getElementById('admin-functions');
+            const adminBookingsList = document.getElementById('admin-bookings-list');
+            const downloadExcelBtn = document.getElementById('download-excel');
+            const clearOldDataBtn = document.getElementById('clear-old-data');
+            const filterDateInput = document.getElementById('filter-date');
+            const loadBookingsBtn = document.getElementById('load-bookings');
+            const editModal = document.getElementById('edit-modal');
+            const editForm = document.getElementById('edit-form');
+            const cancelEditBtn = document.getElementById('cancel-edit');
+            const deleteBookingBtn = document.getElementById('delete-booking');
+            const messageDiv = document.getElementById('message');
+            const firebaseStatus = document.getElementById('firebase-status');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingText = document.getElementById('loading-text');
+            const timeGrid = document.getElementById('time-grid');
+            const dateInput = document.getElementById('date');
+            const roomInputs = document.querySelectorAll('input[name="room"]');
+            const timeWarning = document.getElementById('time-warning');
+            const conflictList = document.getElementById('conflict-list');
+            const editTimeWarning = document.getElementById('edit-time-warning');
+            const editConflictList = document.getElementById('edit-conflict-list');
+            
+            // State variables
+            let isAdminLoggedIn = false;
+            let currentBookingId = null;
+            let bookedTimesCache = {};
+            
+            // Initialize date fields
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+            dateInput.value = today;
+            filterDateInput.value = today;
+            document.getElementById('edit-date').min = today;
+            
+            // Set current date and year
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('ms-MY', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+            
+            // Test Firebase connection
+            testFirebaseConnection();
+            
+            // Tab Switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Update tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update tab content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId) {
+                            content.classList.add('active');
+                        }
+                    });
+                    
+                    // Load bookings for the view tab
+                    if (tabId === 'view') {
+                        loadBookingsForDate(filterDateInput.value);
+                    }
+                    
+                    // Load all bookings for admin if logged in
+                    if (tabId === 'admin' && isAdminLoggedIn) {
+                        loadAllBookingsForAdmin();
+                    }
+                });
+            });
+            
+            // Event listeners to update available times when room or date changes
+            dateInput.addEventListener('change', updateAvailableTimes);
+            roomInputs.forEach(input => {
+                input.addEventListener('change', updateAvailableTimes);
+            });
+            
+            // Booking Form Submission
+            bookingForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Get form values
+                const name = document.getElementById('name').value;
+                const room = document.querySelector('input[name="room"]:checked')?.value;
+                const date = dateInput.value;
+                const timeCheckboxes = document.querySelectorAll('input[name="time"]:checked');
+                
+                // Validation
+                if (!name || !room || !date || timeCheckboxes.length === 0) {
+                    showMessage('Sila isi semua maklumat yang diperlukan', 'error');
+                    return;
+                }
+                
+                // Get selected times
+                const times = Array.from(timeCheckboxes).map(cb => cb.value);
+                
+                // Check for time conflicts
+                const conflicts = await checkTimeConflicts(room, date, times);
+                
+                if (conflicts.length > 0) {
+                    showTimeConflictWarning(conflicts, conflictList, timeWarning);
+                    return;
+                }
+                
+                // Create booking object
+                const booking = {
+                    name: name,
+                    room: room,
+                    date: date,
+                    times: times,
+                    createdAt: new Date().toISOString(),
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                };
+                
+                showLoading('Menyimpan tempahan...');
+                
+                try {
+                    // Save to Firebase Realtime Database
+                    const newBookingRef = database.ref('bookings').push();
+                    await newBookingRef.set(booking);
+                    const bookingId = newBookingRef.key;
+                    
+                    // Clear cache for this room and date
+                    const cacheKey = `${room}-${date}`;
+                    delete bookedTimesCache[cacheKey];
+                    
+                    // Reset form
+                    bookingForm.reset();
+                    dateInput.value = today;
+                    timeWarning.classList.add('hidden');
+                    
+                    // Visual feedback
+                    const formCard = bookingForm.closest('.card');
+                    formCard.classList.add('success-flash');
+                    setTimeout(() => formCard.classList.remove('success-flash'), 500);
+                    
+                    hideLoading();
+                    showMessage('Tempahan berjaya disimpan!', 'success');
+                    
+                    // Update available times
+                    updateAvailableTimes();
+                    
+                    // Reload bookings for the selected date
+                    loadBookingsForDate(date);
+                } catch (error) {
+                    console.error('Error saving booking:', error);
+                    hideLoading();
+                    showMessage('Ralat: Tempahan tidak berjaya disimpan', 'error');
+                }
+            });
+            
+            // Function to check for time conflicts
+            async function checkTimeConflicts(room, date, times, excludeBookingId = null) {
+                const conflicts = [];
+                
+                try {
+                    // Query for existing bookings for this room and date
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (snapshot.exists()) {
+                        const bookings = snapshot.val();
+                        
+                        for (const bookingId in bookings) {
+                            // Skip the current booking if editing
+                            if (excludeBookingId && bookingId === excludeBookingId) {
+                                continue;
+                            }
+                            
+                            const booking = bookings[bookingId];
+                            
+                            if (booking.room === room && booking.date === date) {
+                                const bookedTimes = booking.times || [];
+                                
+                                // Check each time for conflicts
+                                times.forEach(time => {
+                                    if (bookedTimes.includes(time)) {
+                                        conflicts.push({
+                                            time: time,
+                                            bookedBy: booking.name,
+                                            bookingId: bookingId
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    
+                    return conflicts;
+                } catch (error) {
+                    console.error('Error checking time conflicts:', error);
+                    return conflicts;
+                }
+            }
+            
+            // Function to show time conflict warning
+            function showTimeConflictWarning(conflicts, listElement, warningElement) {
+                listElement.innerHTML = '';
+                
+                conflicts.forEach(conflict => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<strong>${conflict.time}</strong> - Ditempah oleh: <strong>${conflict.bookedBy}</strong>`;
+                    listElement.appendChild(li);
+                });
+                
+                warningElement.classList.remove('hidden');
+                showMessage('Masa yang dipilih telah ditempah! Sila pilih masa lain.', 'error');
+                
+                // Scroll to warning
+                warningElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            
+            // Function to update available times based on room and date selection
+            async function updateAvailableTimes() {
+                const room = document.querySelector('input[name="room"]:checked')?.value;
+                const date = dateInput.value;
+                
+                if (!room || !date) {
+                    return;
+                }
+                
+                // Disable all time options first
+                const timeOptions = document.querySelectorAll('#time-grid .time-option');
+                timeOptions.forEach(option => {
+                    option.classList.remove('disabled');
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.disabled = false;
+                    }
+                });
+                
+                // Hide warning
+                timeWarning.classList.add('hidden');
+                
+                try {
+                    // Get booked times for this room and date
+                    const cacheKey = `${room}-${date}`;
+                    let bookedTimes = [];
+                    
+                    if (bookedTimesCache[cacheKey]) {
+                        bookedTimes = bookedTimesCache[cacheKey];
+                    } else {
+                        const snapshot = await database.ref('bookings').once('value');
+                        
+                        if (snapshot.exists()) {
+                            const bookings = snapshot.val();
+                            
+                            for (const bookingId in bookings) {
+                                const booking = bookings[bookingId];
+                                if (booking.room === room && booking.date === date) {
+                                    bookedTimes = bookedTimes.concat(booking.times || []);
+                                }
+                            }
+                            
+                            // Cache the results
+                            bookedTimesCache[cacheKey] = bookedTimes;
+                        }
+                    }
+                    
+                    // Disable booked time options
+                    timeOptions.forEach(option => {
+                        const checkbox = option.querySelector('input[type="checkbox"]');
+                        const timeValue = checkbox.value;
+                        
+                        if (bookedTimes.includes(timeValue)) {
+                            option.classList.add('disabled');
+                            checkbox.disabled = true;
+                            checkbox.checked = false;
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('Error updating available times:', error);
+                }
+            }
+            
+            // Load bookings for a specific date
+            async function loadBookingsForDate(date) {
+                try {
+                    bookingsList.innerHTML = '<p class="loading">Memuatkan tempahan...</p>';
+                    
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (!snapshot.exists()) {
+                        bookingsList.innerHTML = '<p class="no-bookings">Tiada tempahan untuk tarikh ini.</p>';
+                        return;
+                    }
+                    
+                    const bookings = snapshot.val();
+                    const bookingsArray = [];
+                    
+                    // Convert to array and filter by date
+                    for (const bookingId in bookings) {
+                        const booking = bookings[bookingId];
+                        if (booking.date === date) {
+                            bookingsArray.push({ id: bookingId, ...booking });
+                        }
+                    }
+                    
+                    if (bookingsArray.length === 0) {
+                        bookingsList.innerHTML = '<p class="no-bookings">Tiada tempahan untuk tarikh ini.</p>';
+                        return;
+                    }
+                    
+                    // Sort by creation date
+                    bookingsArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    
+                    bookingsList.innerHTML = '';
+                    
+                    // Group bookings by room
+                    const bookingsByRoom = {};
+                    bookingsArray.forEach(booking => {
+                        if (!bookingsByRoom[booking.room]) {
+                            bookingsByRoom[booking.room] = [];
+                        }
+                        bookingsByRoom[booking.room].push(booking);
+                    });
+                    
+                    // Display bookings by room
+                    for (const room in bookingsByRoom) {
+                        const roomBookings = bookingsByRoom[room];
+                        
+                        const roomSection = document.createElement('div');
+                        roomSection.className = 'room-section';
+                        roomSection.innerHTML = `<h3><i class="fas fa-door-open"></i> ${room}</h3>`;
+                        
+                        roomBookings.forEach(booking => {
+                            const bookingElement = createBookingElement(booking, false);
+                            roomSection.appendChild(bookingElement);
+                        });
+                        
+                        bookingsList.appendChild(roomSection);
+                    }
+                    
+                    // Show success message if bookings were loaded
+                    if (Object.keys(bookingsByRoom).length > 0) {
+                        showMessage(`Berjaya memuatkan ${bookingsArray.length} tempahan`, 'success');
+                    }
+                } catch (error) {
+                    console.error('Error loading bookings:', error);
+                    bookingsList.innerHTML = '<p class="error">Ralat memuatkan tempahan.</p>';
+                    showMessage('Ralat memuatkan tempahan', 'error');
+                }
+            }
+            
+            // Create booking element
+            function createBookingElement(booking, isAdmin = false) {
+                const div = document.createElement('div');
+                div.className = 'booking-item';
+                div.dataset.id = booking.id;
+                
+                const timesHtml = booking.times.map(time => 
+                    `<span class="booking-time">${time}</span>`
+                ).join(' ');
+                
+                div.innerHTML = `
+                    <div class="booking-item-header">
+                        <div class="booking-name"><i class="fas fa-user"></i> ${booking.name}</div>
+                        <div class="booking-date"><i class="fas fa-calendar"></i> ${formatDate(booking.date)}</div>
+                    </div>
+                    <div class="booking-room"><i class="fas fa-door-closed"></i> ${booking.room}</div>
+                    <div class="booking-details">
+                        <div><i class="fas fa-clock"></i> Masa:</div>
+                        ${timesHtml}
+                    </div>
+                `;
+                
+                if (isAdmin) {
+                    const controls = document.createElement('div');
+                    controls.className = 'admin-booking-controls';
+                    controls.innerHTML = `
+                        <button class="btn-edit" data-id="${booking.id}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn-delete-admin" data-id="${booking.id}">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    `;
+                    div.appendChild(controls);
+                    
+                    // Add event listeners to admin buttons
+                    controls.querySelector('.btn-edit').addEventListener('click', () => openEditModal(booking));
+                    controls.querySelector('.btn-delete-admin').addEventListener('click', () => deleteBooking(booking.id));
+                }
+                
+                return div;
+            }
+            
+            // Format date for display
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('ms-MY', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            }
+            
+            // Load bookings button
+            loadBookingsBtn.addEventListener('click', () => {
+                loadBookingsForDate(filterDateInput.value);
+            });
+            
+            // Admin Login
+            adminLoginBtn.addEventListener('click', () => {
+                const password = document.getElementById('admin-password').value;
+                
+                if (password === "KVWT INTEL") {
+                    isAdminLoggedIn = true;
+                    document.getElementById('admin-login-section').classList.add('hidden');
+                    adminFunctions.classList.remove('hidden');
+                    
+                    // Visual feedback
+                    const adminCard = adminFunctions.closest('.card');
+                    adminCard.classList.add('success-flash');
+                    setTimeout(() => adminCard.classList.remove('success-flash'), 500);
+                    
+                    showMessage('Log masuk admin berjaya!', 'success');
+                    loadAllBookingsForAdmin();
+                } else {
+                    showMessage('Kata laluan salah!', 'error');
+                }
+            });
+            
+            // Load all bookings for admin
+            async function loadAllBookingsForAdmin() {
+                try {
+                    adminBookingsList.innerHTML = '<p class="loading">Memuatkan semua tempahan...</p>';
+                    
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (!snapshot.exists()) {
+                        adminBookingsList.innerHTML = '<p class="no-bookings">Tiada tempahan.</p>';
+                        showMessage('Tiada tempahan dalam sistem', 'info');
+                        return;
+                    }
+                    
+                    const bookings = snapshot.val();
+                    const bookingsArray = [];
+                    
+                    // Convert to array
+                    for (const bookingId in bookings) {
+                        bookingsArray.push({ id: bookingId, ...bookings[bookingId] });
+                    }
+                    
+                    // Sort by date
+                    bookingsArray.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    adminBookingsList.innerHTML = '';
+                    
+                    bookingsArray.forEach(booking => {
+                        const bookingElement = createBookingElement(booking, true);
+                        adminBookingsList.appendChild(bookingElement);
+                    });
+                    
+                    showMessage(`Berjaya memuatkan ${bookingsArray.length} tempahan untuk admin`, 'success');
+                } catch (error) {
+                    console.error('Error loading bookings for admin:', error);
+                    adminBookingsList.innerHTML = '<p class="error">Ralat memuatkan tempahan.</p>';
+                    showMessage('Ralat memuatkan tempahan', 'error');
+                }
+            }
+            
+            // Open edit modal
+            async function openEditModal(booking) {
+                currentBookingId = booking.id;
+                document.getElementById('edit-id').value = booking.id;
+                document.getElementById('edit-name').value = booking.name;
+                document.getElementById('edit-room').value = booking.room;
+                document.getElementById('edit-date').value = booking.date;
+                
+                // Reset edit time checkboxes
+                const editTimeCheckboxes = document.querySelectorAll('input[name="edit-time"]');
+                editTimeCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                    checkbox.disabled = false;
+                });
+                
+                // Check the times for this booking
+                booking.times.forEach(time => {
+                    const checkbox = document.querySelector(`input[name="edit-time"][value="${time}"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+                
+                // Update available times in edit modal
+                await updateEditAvailableTimes(booking.room, booking.date, booking.id);
+                
+                editModal.classList.remove('hidden');
+                editTimeWarning.classList.add('hidden');
+            }
+            
+            // Update available times in edit modal
+            async function updateEditAvailableTimes(room, date, excludeBookingId) {
+                if (!room || !date) {
+                    return;
+                }
+                
+                // Reset all time options
+                const timeOptions = document.querySelectorAll('#edit-time-grid .time-option');
+                timeOptions.forEach(option => {
+                    option.classList.remove('disabled');
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.disabled = false;
+                    }
+                });
+                
+                try {
+                    // Get booked times for this room and date, excluding current booking
+                    const snapshot = await database.ref('bookings').once('value');
+                    const bookedTimes = [];
+                    
+                    if (snapshot.exists()) {
+                        const bookings = snapshot.val();
+                        
+                        for (const bookingId in bookings) {
+                            // Skip the current booking
+                            if (bookingId === excludeBookingId) {
+                                continue;
+                            }
+                            
+                            const booking = bookings[bookingId];
+                            if (booking.room === room && booking.date === date) {
+                                bookedTimes.push(...(booking.times || []));
+                            }
+                        }
+                    }
+                    
+                    // Disable booked time options
+                    timeOptions.forEach(option => {
+                        const checkbox = option.querySelector('input[type="checkbox"]');
+                        const timeValue = checkbox.value;
+                        
+                        if (bookedTimes.includes(timeValue)) {
+                            option.classList.add('disabled');
+                            checkbox.disabled = true;
+                            checkbox.checked = false;
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('Error updating edit available times:', error);
+                }
+            }
+            
+            // Event listener for edit form date/room changes
+            document.getElementById('edit-date').addEventListener('change', async function() {
+                const room = document.getElementById('edit-room').value;
+                const date = this.value;
+                await updateEditAvailableTimes(room, date, currentBookingId);
+            });
+            
+            document.getElementById('edit-room').addEventListener('change', async function() {
+                const room = this.value;
+                const date = document.getElementById('edit-date').value;
+                await updateEditAvailableTimes(room, date, currentBookingId);
+            });
+            
+            // Close edit modal
+            cancelEditBtn.addEventListener('click', () => {
+                editModal.classList.add('hidden');
+                currentBookingId = null;
+                showMessage('Edit tempahan dibatalkan', 'info');
+            });
+            
+            // Edit form submission
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const updatedBooking = {
+                    name: document.getElementById('edit-name').value,
+                    room: document.getElementById('edit-room').value,
+                    date: document.getElementById('edit-date').value,
+                    updatedAt: new Date().toISOString()
+                };
+                
+                // Get selected times from edit form
+                const editTimeCheckboxes = document.querySelectorAll('input[name="edit-time"]:checked');
+                const times = Array.from(editTimeCheckboxes).map(cb => cb.value);
+                
+                // Validation
+                if (times.length === 0) {
+                    showMessage('Sila pilih sekurang-kurangnya satu masa', 'error');
+                    return;
+                }
+                
+                // Check for time conflicts (excluding current booking)
+                const conflicts = await checkTimeConflicts(
+                    updatedBooking.room, 
+                    updatedBooking.date, 
+                    times, 
+                    currentBookingId
+                );
+                
+                if (conflicts.length > 0) {
+                    showTimeConflictWarning(conflicts, editConflictList, editTimeWarning);
+                    return;
+                }
+                
+                // Add times to updated booking
+                updatedBooking.times = times;
+                
+                // Keep existing createdAt and expiresAt
+                try {
+                    const existingSnapshot = await database.ref(`bookings/${currentBookingId}`).once('value');
+                    if (existingSnapshot.exists()) {
+                        const existingBooking = existingSnapshot.val();
+                        updatedBooking.createdAt = existingBooking.createdAt;
+                        updatedBooking.expiresAt = existingBooking.expiresAt;
+                    }
+                } catch (error) {
+                    console.error('Error getting existing booking:', error);
+                }
+                
+                showLoading('Mengemaskini tempahan...');
+                
+                try {
+                    await database.ref(`bookings/${currentBookingId}`).update(updatedBooking);
+                    
+                    // Clear cache for old and new room/date combinations
+                    const oldCacheKey = `${updatedBooking.room}-${updatedBooking.date}`;
+                    delete bookedTimesCache[oldCacheKey];
+                    
+                    // Visual feedback
+                    const bookingItem = document.querySelector(`.booking-item[data-id="${currentBookingId}"]`);
+                    if (bookingItem) {
+                        bookingItem.classList.add('success-flash');
+                        setTimeout(() => bookingItem.classList.remove('success-flash'), 500);
+                    }
+                    
+                    hideLoading();
+                    showMessage('Tempahan berjaya dikemaskini!', 'success');
+                    editModal.classList.add('hidden');
+                    editTimeWarning.classList.add('hidden');
+                    
+                    // Update available times in booking form
+                    updateAvailableTimes();
+                    
+                    // Reload data
+                    loadAllBookingsForAdmin();
+                    loadBookingsForDate(filterDateInput.value);
+                } catch (error) {
+                    console.error('Error updating booking:', error);
+                    hideLoading();
+                    showMessage('Ralat mengemaskini tempahan', 'error');
+                }
+            });
+            
+            // Delete booking
+            deleteBookingBtn.addEventListener('click', async () => {
+                if (!currentBookingId) return;
+                
+                if (confirm('Adakah anda pasti untuk menghapus tempahan ini?')) {
+                    showLoading('Menghapus tempahan...');
+                    
+                    try {
+                        // Get booking details before deleting for cache cleanup
+                        const bookingSnapshot = await database.ref(`bookings/${currentBookingId}`).once('value');
+                        const booking = bookingSnapshot.val();
+                        
+                        await database.ref(`bookings/${currentBookingId}`).remove();
+                        
+                        // Clear cache for this room and date
+                        if (booking) {
+                            const cacheKey = `${booking.room}-${booking.date}`;
+                            delete bookedTimesCache[cacheKey];
+                        }
+                        
+                        hideLoading();
+                        showMessage('Tempahan berjaya dihapus!', 'success');
+                        editModal.classList.add('hidden');
+                        
+                        // Update available times
+                        updateAvailableTimes();
+                        
+                        // Reload data
+                        loadAllBookingsForAdmin();
+                        loadBookingsForDate(filterDateInput.value);
+                    } catch (error) {
+                        console.error('Error deleting booking:', error);
+                        hideLoading();
+                        showMessage('Ralat menghapus tempahan', 'error');
+                    }
+                }
+            });
+            
+            // Delete booking from admin list
+            async function deleteBooking(bookingId) {
+                if (confirm('Adakah anda pasti untuk menghapus tempahan ini?')) {
+                    showLoading('Menghapus tempahan...');
+                    
+                    try {
+                        // Get booking details before deleting for cache cleanup
+                        const bookingSnapshot = await database.ref(`bookings/${bookingId}`).once('value');
+                        const booking = bookingSnapshot.val();
+                        
+                        await database.ref(`bookings/${bookingId}`).remove();
+                        
+                        // Clear cache for this room and date
+                        if (booking) {
+                            const cacheKey = `${booking.room}-${booking.date}`;
+                            delete bookedTimesCache[cacheKey];
+                        }
+                        
+                        // Visual feedback
+                        const bookingItem = document.querySelector(`.booking-item[data-id="${bookingId}"]`);
+                        if (bookingItem) {
+                            bookingItem.classList.add('success-flash');
+                            setTimeout(() => {
+                                bookingItem.remove();
+                                hideLoading();
+                                showMessage('Tempahan berjaya dihapus!', 'success');
+                                
+                                // Update available times
+                                updateAvailableTimes();
+                            }, 300);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting booking:', error);
+                        hideLoading();
+                        showMessage('Ralat menghapus tempahan', 'error');
+                    }
+                }
+            }
+            
+            // Download Excel
+            downloadExcelBtn.addEventListener('click', async () => {
+                showLoading('Menyediakan fail Excel...');
+                
+                try {
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (!snapshot.exists()) {
+                        hideLoading();
+                        showMessage('Tiada data untuk dimuat turun', 'info');
+                        return;
+                    }
+                    
+                    const bookings = snapshot.val();
+                    const data = [];
+                    
+                    for (const bookingId in bookings) {
+                        const booking = bookings[bookingId];
+                        data.push({
+                            'Nama': booking.name,
+                            'Bilik': booking.room,
+                            'Tarikh': booking.date,
+                            'Masa': booking.times.join(', '),
+                            'Dicipta': booking.createdAt ? new Date(booking.createdAt).toLocaleString('ms-MY') : 'N/A',
+                            'Kemaskini Terakhir': booking.updatedAt ? new Date(booking.updatedAt).toLocaleString('ms-MY') : 'N/A'
+                        });
+                    }
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Tempahan Bilik');
+                    
+                    // Generate Excel file
+                    const date = new Date().toISOString().split('T')[0];
+                    XLSX.writeFile(wb, `tempahan-bilik-${date}.xlsx`);
+                    
+                    hideLoading();
+                    showMessage('Fail Excel berjaya dimuat turun!', 'success');
+                    
+                    // Visual feedback
+                    downloadExcelBtn.classList.add('success-flash');
+                    setTimeout(() => downloadExcelBtn.classList.remove('success-flash'), 500);
+                } catch (error) {
+                    console.error('Error downloading Excel:', error);
+                    hideLoading();
+                    showMessage('Ralat memuat turun data', 'error');
+                }
+            });
+            
+            // Clear old data (30+ days)
+            clearOldDataBtn.addEventListener('click', async () => {
+                if (!confirm('Ini akan memadam semua tempahan yang berusia 30+ hari. Teruskan?')) {
+                    return;
+                }
+                
+                showLoading('Memadam data lama...');
+                
+                try {
+                    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                    const thirtyDaysAgoString = thirtyDaysAgo.toISOString().split('T')[0];
+                    
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (!snapshot.exists()) {
+                        hideLoading();
+                        showMessage('Tiada data lama untuk dipadam', 'info');
+                        return;
+                    }
+                    
+                    const bookings = snapshot.val();
+                    let deletedCount = 0;
+                    const deletePromises = [];
+                    
+                    for (const bookingId in bookings) {
+                        const booking = bookings[bookingId];
+                        if (booking.date < thirtyDaysAgoString) {
+                            deletePromises.push(database.ref(`bookings/${bookingId}`).remove());
+                            deletedCount++;
+                        }
+                    }
+                    
+                    await Promise.all(deletePromises);
+                    
+                    // Clear cache
+                    bookedTimesCache = {};
+                    
+                    hideLoading();
+                    showMessage(`Berjaya memadam ${deletedCount} tempahan lama`, 'success');
+                    
+                    // Visual feedback
+                    clearOldDataBtn.classList.add('success-flash');
+                    setTimeout(() => clearOldDataBtn.classList.remove('success-flash'), 500);
+                    
+                    loadAllBookingsForAdmin();
+                } catch (error) {
+                    console.error('Error clearing old data:', error);
+                    hideLoading();
+                    showMessage('Ralat memadam data lama', 'error');
+                }
+            });
+            
+            // Show message function
+            function showMessage(text, type) {
+                messageDiv.textContent = text;
+                messageDiv.className = `message ${type}`;
+                messageDiv.innerHTML = `
+                    <i class="fas ${getIconForType(type)}"></i>
+                    <span>${text}</span>
+                `;
+                messageDiv.classList.remove('hidden');
+                
+                // Auto-hide after 3 seconds
+                setTimeout(() => {
+                    messageDiv.classList.add('hidden');
+                }, 3000);
+            }
+            
+            // Get icon for message type
+            function getIconForType(type) {
+                switch(type) {
+                    case 'success': return 'fa-check-circle';
+                    case 'error': return 'fa-exclamation-circle';
+                    case 'info': return 'fa-info-circle';
+                    case 'warning': return 'fa-exclamation-triangle';
+                    default: return 'fa-info-circle';
+                }
+            }
+            
+            // Show loading overlay
+            function showLoading(text = 'Memproses...') {
+                loadingText.textContent = text;
+                loadingOverlay.classList.remove('hidden');
+            }
+            
+            // Hide loading overlay
+            function hideLoading() {
+                loadingOverlay.classList.add('hidden');
+            }
+            
+            // Test Firebase connection
+            function testFirebaseConnection() {
+                database.ref('.info/connected').on('value', (snapshot) => {
+                    if (snapshot.val() === true) {
+                        firebaseStatus.textContent = "Disambungkan";
+                        firebaseStatus.style.color = "#27ae60";
+                        console.log("Firebase Realtime Database connected!");
+                    } else {
+                        firebaseStatus.textContent = "Sambungan gagal";
+                        firebaseStatus.style.color = "#e74c3c";
+                    }
+                });
+            }
+            
+            // Auto-delete old bookings (runs when page loads)
+            async function autoDeleteOldBookings() {
+                try {
+                    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+                    const thirtyDaysAgoString = thirtyDaysAgo.toISOString().split('T')[0];
+                    
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (!snapshot.exists()) {
+                        return;
+                    }
+                    
+                    const bookings = snapshot.val();
+                    let deletedCount = 0;
+                    const deletePromises = [];
+                    
+                    for (const bookingId in bookings) {
+                        const booking = bookings[bookingId];
+                        if (booking.date < thirtyDaysAgoString) {
+                            deletePromises.push(database.ref(`bookings/${bookingId}`).remove());
+                            deletedCount++;
+                        }
+                    }
+                    
+                    await Promise.all(deletePromises);
+                    
+                    if (deletedCount > 0) {
+                        console.log(`Auto-deleted ${deletedCount} old bookings`);
+                        showMessage(`Sistem telah memadam ${deletedCount} tempahan lama secara automatik`, 'info');
+                    }
+                } catch (error) {
+                    console.error('Error auto-deleting old bookings:', error);
+                }
+            }
+            
+            // Initialize on page load
+            // Load bookings for today
+            loadBookingsForDate(filterDateInput.value);
+            
+            // Auto-delete old bookings
+            autoDeleteOldBookings();
+            
+            // Set filter date to today if empty
+            if (!filterDateInput.value) {
+                filterDateInput.value = today;
+            }
+            
+            console.log("Application initialized successfully!");
+        });
+    </script>
+</body>
+</html>
