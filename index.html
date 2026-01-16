@@ -1798,10 +1798,10 @@
                         data.push({
                             'Nama': booking.name,
                             'Bilik': booking.room,
-                            'Tarikh': booking.date,
+                            'Tarikh untuk tempahan bilik': booking.date,
                             'Masa': booking.times.join(', '),
-                            'Dicipta': booking.createdAt ? new Date(booking.createdAt).toLocaleString('ms-MY') : 'N/A',
-                            'Kemaskini Terakhir': booking.updatedAt ? new Date(booking.updatedAt).toLocaleString('ms-MY') : 'N/A'
+                            'Tarikh/masa semasa membuat tempahan': booking.createdAt ? new Date(booking.createdAt).toLocaleString('ms-MY') : 'N/A',
+                            'Catatan': booking.updatedAt ? new Date(booking.updatedAt).toLocaleString('ms-MY') : 'Ditempah'
                         });
                     }
                     
