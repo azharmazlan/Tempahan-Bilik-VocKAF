@@ -853,11 +853,12 @@
         <div id="view" class="tab-content">
             <div class="card">
                 <h2><i class="fas fa-list"></i> Lihat Tempahan</h2>
+<p class="subtitle">Pilih tarikh dah tekan cari tempahan untuk melihat Senarai tempahan yang telah direkodkan</p>
                 <div class="filter-section">
                     <label for="filter-date">Pilih Tarikh:</label>
                     <input type="date" id="filter-date">
                     <button id="load-bookings" class="btn-filter">
-                        <i class="fas fa-search"></i> Muat Tempahan
+                        <i class="fas fa-search"></i> Cari tempahan
                     </button>
                 </div>
                 
@@ -1923,11 +1924,11 @@
             function testFirebaseConnection() {
                 database.ref('.info/connected').on('value', (snapshot) => {
                     if (snapshot.val() === true) {
-                        firebaseStatus.textContent = "Disambungkan";
+                        firebaseStatus.textContent = "ONLINE";
                         firebaseStatus.style.color = "#27ae60";
                         console.log("Firebase Realtime Database connected!");
                     } else {
-                        firebaseStatus.textContent = "Sambungan gagal";
+                        firebaseStatus.textContent = "OFFLINE";
                         firebaseStatus.style.color = "#e74c3c";
                     }
                 });
