@@ -658,12 +658,6 @@
             border: 1px solid rgba(45, 116, 218, 0.2);
         }
 
-        .booking-time.booked {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-            border-color: rgba(239, 68, 68, 0.2);
-        }
-
         /* Admin Functions */
         .admin-actions {
             display: grid;
@@ -1508,11 +1502,6 @@
                 <div class="room-availability" id="today-bookings-detail"></div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="baki-tempahan">0</div>
-                <div class="stat-label">Baki Tempahan Aktif</div>
-                <div class="room-availability" id="baki-tempahan-detail"></div>
-            </div>
-            <div class="stat-card">
                 <div class="stat-number" id="bilik-tersedia">3</div>
                 <div class="stat-label">Bilik Tersedia Hari Ini</div>
                 <div class="room-availability" id="room-status-list">
@@ -1828,11 +1817,9 @@
             
             // Stats elements
             const todayBookingsEl = document.getElementById('today-bookings');
-            const bakiTempahanEl = document.getElementById('baki-tempahan');
             const bilikTersediaEl = document.getElementById('bilik-tersedia');
             const systemStatusEl = document.getElementById('system-status');
             const todayBookingsDetail = document.getElementById('today-bookings-detail');
-            const bakiTempahanDetail = document.getElementById('baki-tempahan-detail');
             const roomStatusList = document.getElementById('room-status-list');
             
             // State variables
@@ -2283,98 +2270,13 @@
                 }
             }
             
-            // Function to calculate current time slot
-            function getCurrentTimeSlot() {
-                const now = new Date();
-                const currentHour = now.getHours();
-                const currentMinute = now.getMinutes();
-                
-                // Convert current time to minutes since midnight
-                const currentTotalMinutes = currentHour * 60 + currentMinute;
-                
-                // Find which time slot we're in
-                for (let i = 0; i < timeSlots.length; i++) {
-                    const slot = timeSlots[i];
-                    const [start, end] = slot.split('-');
-                    
-                    const [startHour, startMinute] = start.split(':').map(Number);
-                    const [endHour, endMinute] = end.split(':').map(Number);
-                    
-                    const startTotalMinutes = startHour * 60 + startMinute;
-                    const endTotalMinutes = endHour * 60 + endMinute;
-                    
-                    if (currentTotalMinutes >= startTotalMinutes && currentTotalMinutes < endTotalMinutes) {
-                        return {
-                            slot: slot,
-                            index: i,
-                            hasStarted: true,
-                            hasEnded: false
-                        };
-                    }
-                }
-                
-                // If no current slot, check if we're before or after all slots
-                const firstSlot = timeSlots[0];
-                const [firstStartHour, firstStartMinute] = firstSlot.split('-')[0].split(':').map(Number);
-                const firstStartTotalMinutes = firstStartHour * 60 + firstStartMinute;
-                
-                if (currentTotalMinutes < firstStartTotalMinutes) {
-                    return {
-                        slot: null,
-                        index: -1,
-                        hasStarted: false,
-                        hasEnded: false
-                    };
-                }
-                
-                // Check if all slots have ended
-                const lastSlot = timeSlots[timeSlots.length - 1];
-                const [lastEndHour, lastEndMinute] = lastSlot.split('-')[1].split(':').map(Number);
-                const lastEndTotalMinutes = lastEndHour * 60 + lastEndMinute;
-                
-                if (currentTotalMinutes >= lastEndTotalMinutes) {
-                    return {
-                        slot: null,
-                        index: timeSlots.length,
-                        hasStarted: false,
-                        hasEnded: true
-                    };
-                }
-                
-                // Find which slot will come next
-                for (let i = 0; i < timeSlots.length; i++) {
-                    const slot = timeSlots[i];
-                    const [startHour, startMinute] = slot.split('-')[0].split(':').map(Number);
-                    const startTotalMinutes = startHour * 60 + startMinute;
-                    
-                    if (currentTotalMinutes < startTotalMinutes) {
-                        return {
-                            slot: null,
-                            index: i - 1,
-                            hasStarted: false,
-                            hasEnded: true
-                        };
-                    }
-                }
-                
-                return {
-                    slot: null,
-                    index: -1,
-                    hasStarted: false,
-                    hasEnded: false
-                };
-            }
-            
             // Load stats function
             async function loadStats() {
                 try {
                     const snapshot = await database.ref('bookings').once('value');
                     
                     const todayStr = new Date().toISOString().split('T')[0];
-                    const currentTimeInfo = getCurrentTimeSlot();
-                    
                     let todayCount = 0;
-                    let activeCount = 0;
                     let roomAvailability = {};
                     
                     // Initialize room availability
@@ -2396,23 +2298,7 @@
                             if (booking.date === todayStr) {
                                 todayCount++;
                                 
-                                // Check if this booking is still active (not ended)
                                 const bookingSlots = booking.times || [];
-                                let isActive = false;
-                                
-                                for (const slot of bookingSlots) {
-                                    const slotIndex = timeSlots.indexOf(slot);
-                                    
-                                    // If slot hasn't ended yet (current slot index is less than or equal to slot index)
-                                    if (slotIndex >= currentTimeInfo.index) {
-                                        isActive = true;
-                                        break;
-                                    }
-                                }
-                                
-                                if (isActive) {
-                                    activeCount++;
-                                }
                                 
                                 // Update room availability
                                 if (roomAvailability[booking.room]) {
@@ -2442,25 +2328,6 @@
                         todayBookingsDetail.innerHTML = `
                             <div style="font-size: 0.9rem; color: var(--success);">
                                 <i class="fas fa-check-circle"></i> Tiada tempahan hari ini
-                            </div>
-                        `;
-                    }
-                    
-                    // Update baki tempahan
-                    bakiTempahanEl.textContent = activeCount;
-                    bakiTempahanEl.style.color = activeCount > 0 ? 'var(--success)' : 'var(--gray)';
-                    
-                    // Update baki tempahan detail
-                    if (activeCount > 0) {
-                        bakiTempahanDetail.innerHTML = `
-                            <div style="font-size: 0.9rem; color: var(--success);">
-                                <i class="fas fa-clock"></i> ${activeCount} tempahan aktif
-                            </div>
-                        `;
-                    } else {
-                        bakiTempahanDetail.innerHTML = `
-                            <div style="font-size: 0.9rem; color: var(--gray);">
-                                <i class="fas fa-clock"></i> Tiada tempahan aktif
                             </div>
                         `;
                     }
@@ -2543,8 +2410,6 @@
                         bookingsByRoom[booking.room].push(booking);
                     });
                     
-                    // Get current time info
-                    const currentTimeInfo = getCurrentTimeSlot();
                     const currentDate = new Date().toISOString().split('T')[0];
                     const isToday = date === currentDate;
                     
@@ -2555,32 +2420,14 @@
                         const roomSection = document.createElement('div');
                         roomSection.className = 'room-section';
                         
-                        // Calculate active bookings for this room
-                        let activeInRoom = 0;
-                        if (isToday) {
-                            roomBookings.forEach(booking => {
-                                const bookingSlots = booking.times || [];
-                                for (const slot of bookingSlots) {
-                                    const slotIndex = timeSlots.indexOf(slot);
-                                    if (slotIndex >= currentTimeInfo.index) {
-                                        activeInRoom++;
-                                        break;
-                                    }
-                                }
-                            });
-                        }
-                        
                         roomSection.innerHTML = `
                             <h3>
                                 <i class="fas fa-door-open"></i> ${room}
-                                ${isToday ? `<span style="font-size: 0.9rem; color: ${activeInRoom > 0 ? 'var(--success)' : 'var(--gray)'}; margin-left: 10px;">
-                                    <i class="fas fa-clock"></i> ${activeInRoom} aktif
-                                </span>` : ''}
                             </h3>
                         `;
                         
                         roomBookings.forEach(booking => {
-                            const bookingElement = createBookingElement(booking, false, isToday, currentTimeInfo);
+                            const bookingElement = createBookingElement(booking, false);
                             roomSection.appendChild(bookingElement);
                         });
                         
@@ -2599,50 +2446,23 @@
             }
             
             // Create booking element
-            function createBookingElement(booking, isAdmin = false, isToday = false, currentTimeInfo = null) {
+            function createBookingElement(booking, isAdmin = false) {
                 const div = document.createElement('div');
                 div.className = 'booking-item';
                 div.dataset.id = booking.id;
                 
-                // Determine which time slots are active (not ended yet)
                 const bookingSlots = booking.times || [];
-                let activeSlots = [];
-                let endedSlots = [];
                 
-                if (isToday && currentTimeInfo) {
-                    bookingSlots.forEach(slot => {
-                        const slotIndex = timeSlots.indexOf(slot);
-                        if (slotIndex >= currentTimeInfo.index) {
-                            activeSlots.push(slot);
-                        } else {
-                            endedSlots.push(slot);
-                        }
-                    });
-                } else {
-                    activeSlots = [...bookingSlots];
-                }
-                
-                // Check if booking is active (has at least one active slot)
-                const isActive = activeSlots.length > 0;
-                
-                // Create time slot HTML
+                // Create time slot HTML - paparkan slot masa sahaja tanpa label "TAMAT"
                 let timesHtml = '';
-                
-                // Add active slots first
-                activeSlots.forEach(time => {
+                bookingSlots.forEach(time => {
                     timesHtml += `<span class="booking-time">${time}</span>`;
-                });
-                
-                // Add ended slots with different styling
-                endedSlots.forEach(time => {
-                    timesHtml += `<span class="booking-time booked">${time} (TAMAT)</span>`;
                 });
                 
                 div.innerHTML = `
                     <div class="booking-item-header">
                         <div class="booking-name">
                             <i class="fas fa-user"></i> ${booking.name}
-                            ${isActive ? '<span style="color: var(--success); font-size: 0.9rem; margin-left: 10px;"><i class="fas fa-play-circle"></i> AKTIF</span>' : ''}
                         </div>
                         <div class="booking-date"><i class="fas fa-calendar"></i> ${formatDate(booking.date)}</div>
                     </div>
@@ -2741,12 +2561,8 @@
                         return;
                     }
                     
-                    const currentTimeInfo = getCurrentTimeSlot();
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    
                     bookingsArray.forEach(booking => {
-                        const isToday = booking.date === todayStr;
-                        const bookingElement = createBookingElement(booking, true, isToday, currentTimeInfo);
+                        const bookingElement = createBookingElement(booking, true);
                         adminBookingsList.appendChild(bookingElement);
                     });
                     
