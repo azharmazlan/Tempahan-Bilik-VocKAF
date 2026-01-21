@@ -347,6 +347,38 @@
             box-shadow: 0 0 0 3px rgba(45, 116, 218, 0.1);
         }
 
+        /* Date Info Message */
+        .date-info-message {
+            background: rgba(45, 116, 218, 0.05);
+            border: 1px solid rgba(45, 116, 218, 0.2);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .date-info-message i {
+            color: var(--secondary);
+            margin-right: 10px;
+        }
+
+        .date-info-message strong {
+            color: var(--primary);
+        }
+
+        .date-info-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-left: 4px solid var(--success);
+        }
+
+        .date-info-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-left: 4px solid var(--warning);
+        }
+
         /* Room Options */
         .room-options {
             display: grid;
@@ -1597,6 +1629,9 @@
                     <div class="form-group">
                         <label for="date"><i class="fas fa-calendar-alt"></i> Tarikh Tempahan</label>
                         <input type="date" id="date" required>
+                        <div id="date-info" class="date-info-message">
+                            <!-- Info akan diisi oleh JavaScript -->
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -1725,6 +1760,9 @@
                 <div class="form-group">
                     <label for="edit-date">Tarikh</label>
                     <input type="date" id="edit-date" required>
+                    <div id="edit-date-info" class="date-info-message">
+                        <!-- Info akan diisi oleh JavaScript -->
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Masa Tempahan</label>
@@ -1814,6 +1852,8 @@
             const editTimeWarning = document.getElementById('edit-time-warning');
             const editConflictList = document.getElementById('edit-conflict-list');
             const availabilityGrid = document.getElementById('availability-grid');
+            const dateInfo = document.getElementById('date-info');
+            const editDateInfo = document.getElementById('edit-date-info');
             
             // Stats elements
             const todayBookingsEl = document.getElementById('today-bookings');
@@ -1858,14 +1898,221 @@
                 }
             ];
             
+            // ============================================
+            // FUNGSI BARU: PERATURAN TEMPAHAN MINGGUAN
+            // ============================================
+            
+            /**
+             * Fungsi untuk mendapatkan had minggu (Ahad dan Sabtu)
+             * @param {Date} date - Tarikh dalam minggu tersebut
+             * @returns {Object} - {sunday: Date, saturday: Date}
+             */
+            function getWeekBoundaries(date) {
+                const currentDate = new Date(date);
+                const dayOfWeek = currentDate.getDay(); // 0 = Ahad, 6 = Sabtu
+                
+                // Kira tarikh Ahad minggu ini
+                const sunday = new Date(currentDate);
+                sunday.setDate(currentDate.getDate() - dayOfWeek);
+                sunday.setHours(0, 0, 0, 0);
+                
+                // Kira tarikh Sabtu minggu ini
+                const saturday = new Date(sunday);
+                saturday.setDate(sunday.getDate() + 6);
+                saturday.setHours(23, 59, 59, 999);
+                
+                return { sunday, saturday };
+            }
+            
+            /**
+             * Fungsi untuk memeriksa sama ada tempahan untuk minggu depan sudah dibuka
+             * @returns {boolean} - True jika boleh tempah untuk minggu depan
+             */
+            function isNextWeekAvailable() {
+                const today = new Date();
+                const dayOfWeek = today.getDay(); // 0 = Ahad, 6 = Sabtu
+                
+                // Jika hari Khamis (4), Jumaat (5), atau Sabtu (6), boleh tempah untuk minggu depan
+                // Juga jika Ahad (0), Isnin (1), Selasa (2), Rabu (3) - hanya boleh tempah untuk minggu ini
+                return dayOfWeek >= 4; // 4=Khamis, 5=Jumaat, 6=Sabtu
+            }
+            
+            /**
+             * Fungsi untuk mendapatkan tarikh maksimum yang boleh dipilih
+             * @returns {Date} - Tarikh maksimum untuk tempahan
+             */
+            function getMaxSelectableDate() {
+                const today = new Date();
+                const { saturday } = getWeekBoundaries(today);
+                
+                if (isNextWeekAvailable()) {
+                    // Jika hari Khamis hingga Sabtu, boleh tempah sehingga Sabtu minggu depan
+                    const nextSaturday = new Date(saturday);
+                    nextSaturday.setDate(saturday.getDate() + 7);
+                    return nextSaturday;
+                } else {
+                    // Jika hari Ahad hingga Rabu, hanya boleh tempah sehingga Sabtu minggu ini
+                    return saturday;
+                }
+            }
+            
+            /**
+             * Fungsi untuk mengemas kini sekatan tarikh pada input
+             */
+            function updateDateRestrictions() {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayStr = today.toISOString().split('T')[0];
+                const maxDate = getMaxSelectableDate();
+                const maxDateStr = maxDate.toISOString().split('T')[0];
+                
+                // Format untuk display
+                const formatDate = (date) => {
+                    return date.toLocaleDateString('ms-MY', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                };
+                
+                // Update input tarikh tempahan
+                dateInput.min = todayStr;
+                dateInput.max = maxDateStr;
+                
+                // Update input tarikh ketersediaan
+                availabilityDateInput.min = todayStr;
+                availabilityDateInput.max = maxDateStr;
+                
+                // Update input tarikh edit
+                document.getElementById('edit-date').min = todayStr;
+                document.getElementById('edit-date').max = maxDateStr;
+                
+                // Update info message untuk booking form
+                const nextWeekAvailable = isNextWeekAvailable();
+                const maxSelectableDate = getMaxSelectableDate();
+                
+                if (nextWeekAvailable) {
+                    dateInfo.innerHTML = `
+                        <div class="date-info-success">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>Tempahan dibuka untuk minggu ini dan minggu depan!</strong>
+                            <p style="margin-top: 5px; margin-bottom: 0;">
+                                Anda boleh membuat tempahan dari <strong>${formatDate(today)}</strong> hingga 
+                                <strong>${formatDate(maxSelectableDate)}</strong>.
+                            </p>
+                        </div>
+                    `;
+                } else {
+                    const { saturday } = getWeekBoundaries(today);
+                    // Cari hari Khamis akan datang
+                    const daysUntilThursday = (4 - today.getDay() + 7) % 7;
+                    const nextThursday = new Date(today);
+                    nextThursday.setDate(today.getDate() + (daysUntilThursday === 0 ? 7 : daysUntilThursday));
+                    
+                    dateInfo.innerHTML = `
+                        <div class="date-info-warning">
+                            <i class="fas fa-clock"></i>
+                            <strong>Tempahan hanya untuk minggu ini sahaja.</strong>
+                            <p style="margin-top: 5px; margin-bottom: 0;">
+                                Anda boleh membuat tempahan dari <strong>${formatDate(today)}</strong> hingga 
+                                <strong>${formatDate(saturday)}</strong>.
+                            </p>
+                            <p style="margin-top: 5px; margin-bottom: 0;">
+                                Tempahan untuk minggu depan akan dibuka pada <strong>Khamis (${formatDate(nextThursday)})</strong>.
+                            </p>
+                        </div>
+                    `;
+                }
+                
+                // Update info untuk edit modal
+                if (editDateInfo) {
+                    if (nextWeekAvailable) {
+                        editDateInfo.innerHTML = `
+                            <div class="date-info-success">
+                                <i class="fas fa-check-circle"></i>
+                                <strong>Tempahan dibuka untuk minggu ini dan minggu depan!</strong>
+                                <p style="margin-top: 5px; margin-bottom: 0; font-size: 0.9rem;">
+                                    Had tarikh: hingga ${formatDate(maxSelectableDate)}
+                                </p>
+                            </div>
+                        `;
+                    } else {
+                        editDateInfo.innerHTML = `
+                            <div class="date-info-warning">
+                                <i class="fas fa-clock"></i>
+                                <strong>Tempahan hanya untuk minggu ini sahaja.</strong>
+                                <p style="margin-top: 5px; margin-bottom: 0; font-size: 0.9rem;">
+                                    Had tarikh: hingga ${formatDate(maxSelectableDate)}
+                                </p>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            /**
+             * Fungsi untuk memvalidasi tarikh tempahan mengikut peraturan
+             * @param {string} dateStr - Tarikh dalam format YYYY-MM-DD
+             * @returns {Object} - {isValid: boolean, message: string}
+             */
+            function validateBookingDate(dateStr) {
+                const selectedDate = new Date(dateStr);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                // Semak tarikh tidak lebih awal dari hari ini
+                if (selectedDate < today) {
+                    return {
+                        isValid: false,
+                        message: '❌ Tarikh tempahan tidak boleh kurang dari hari ini'
+                    };
+                }
+                
+                // Dapatkan had tarikh maksimum
+                const maxDate = getMaxSelectableDate();
+                maxDate.setHours(23, 59, 59, 999);
+                
+                // Semak tarikh tidak melebihi had
+                if (selectedDate > maxDate) {
+                    const maxDateFormatted = maxDate.toLocaleDateString('ms-MY', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    });
+                    
+                    if (isNextWeekAvailable()) {
+                        return {
+                            isValid: false,
+                            message: `❌ Tarikh tempahan tidak boleh melebihi ${maxDateFormatted} (Sabtu minggu depan)`
+                        };
+                    } else {
+                        // Cari hari Khamis akan datang
+                        const daysUntilThursday = (4 - today.getDay() + 7) % 7;
+                        const nextThursday = new Date(today);
+                        nextThursday.setDate(today.getDate() + (daysUntilThursday === 0 ? 7 : daysUntilThursday));
+                        const nextThursdayFormatted = nextThursday.toLocaleDateString('ms-MY', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                        });
+                        
+                        return {
+                            isValid: false,
+                            message: `❌ Tarikh tempahan tidak boleh melebihi ${maxDateFormatted} (Sabtu minggu ini). Tempahan untuk minggu depan akan dibuka pada Khamis (${nextThursdayFormatted}).`
+                        };
+                    }
+                }
+                
+                return { isValid: true, message: '' };
+            }
+            
             // Initialize date fields
-            const today = new Date().toISOString().split('T')[0];
-            dateInput.min = today;
-            dateInput.value = today;
-            filterDateInput.value = today;
-            availabilityDateInput.value = today;
-            availabilityDateInput.min = today;
-            document.getElementById('edit-date').min = today;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayStr = today.toISOString().split('T')[0];
+            dateInput.value = todayStr;
+            filterDateInput.value = todayStr;
+            availabilityDateInput.value = todayStr;
             
             // Set current date and year
             document.getElementById('current-date').textContent = new Date().toLocaleDateString('ms-MY', {
@@ -1890,7 +2137,10 @@
             loadStats();
             
             // Load availability for today
-            loadRoomAvailability(today);
+            loadRoomAvailability(todayStr);
+            
+            // APPLY DATE RESTRICTIONS
+            updateDateRestrictions();
             
             // Tab Switching
             tabs.forEach(tab => {
@@ -1918,11 +2168,26 @@
                     if (tabId === 'admin' && isAdminLoggedIn) {
                         loadAllBookingsForAdmin();
                     }
+                    
+                    // Update date restrictions when booking tab is active
+                    if (tabId === 'booking') {
+                        updateDateRestrictions();
+                    }
                 });
             });
             
             // Event listeners to update available times when room or date changes
             dateInput.addEventListener('change', function() {
+                // Validate date before proceeding
+                const validation = validateBookingDate(this.value);
+                if (!validation.isValid) {
+                    showMessage(validation.message, 'error');
+                    // Reset to max date if exceeds limit
+                    const maxDate = getMaxSelectableDate();
+                    const maxDateStr = maxDate.toISOString().split('T')[0];
+                    this.value = maxDateStr;
+                }
+                
                 updateAvailableTimes();
                 // Update availability for selected date
                 loadRoomAvailability(this.value);
@@ -1934,10 +2199,30 @@
             
             // Event listener for availability date change
             availabilityDateInput.addEventListener('change', function() {
+                // Validate date
+                const selectedDate = new Date(this.value);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDate < today) {
+                    showMessage('❌ Tarikh tidak boleh kurang dari hari ini', 'error');
+                    this.value = today.toISOString().split('T')[0];
+                    return;
+                }
+                
+                // Check if date exceeds max selectable date
+                const maxDate = getMaxSelectableDate();
+                if (selectedDate > maxDate) {
+                    showMessage('❌ Tarikh melebihi had tempahan', 'error');
+                    const maxDateStr = maxDate.toISOString().split('T')[0];
+                    this.value = maxDateStr;
+                    return;
+                }
+                
                 loadRoomAvailability(this.value);
             });
             
-            // Booking Form Submission
+            // Booking Form Submission - DITAMBAH VALIDASI TARIKH
             bookingForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -1950,6 +2235,13 @@
                 // Validation
                 if (!name || !room || !date || timeCheckboxes.length === 0) {
                     showMessage('Sila isi semua maklumat yang diperlukan', 'error');
+                    return;
+                }
+                
+                // VALIDASI TARIKH MENGIKUT PERATURAN BARU
+                const dateValidation = validateBookingDate(date);
+                if (!dateValidation.isValid) {
+                    showMessage(dateValidation.message, 'error');
                     return;
                 }
                 
@@ -1988,7 +2280,7 @@
                     
                     // Reset form
                     bookingForm.reset();
-                    dateInput.value = today;
+                    dateInput.value = todayStr;
                     timeWarning.classList.add('hidden');
                     
                     // Select first room by default
@@ -2192,7 +2484,7 @@
                     
                     // Format the date for display
                     const formattedDate = formatDate(date);
-                    const isToday = date === today;
+                    const isToday = date === todayStr;
                     
                     // Create availability cards for each room
                     rooms.forEach(room => {
@@ -2270,12 +2562,21 @@
                 }
             }
             
+            // Format date for display
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('ms-MY', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                });
+            }
+            
             // Load stats function
             async function loadStats() {
                 try {
                     const snapshot = await database.ref('bookings').once('value');
                     
-                    const todayStr = new Date().toISOString().split('T')[0];
                     let todayCount = 0;
                     let roomAvailability = {};
                     
@@ -2494,16 +2795,6 @@
                 return div;
             }
             
-            // Format date for display
-            function formatDate(dateString) {
-                const date = new Date(dateString);
-                return date.toLocaleDateString('ms-MY', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric'
-                });
-            }
-            
             // Load bookings button
             loadBookingsBtn.addEventListener('click', () => {
                 loadBookingsForDate(filterDateInput.value);
@@ -2574,13 +2865,16 @@
                 }
             }
             
-            // Open edit modal
+            // Open edit modal - DITAMBAH UPDATE DATE RESTRICTIONS
             async function openEditModal(booking) {
                 currentBookingId = booking.id;
                 document.getElementById('edit-id').value = booking.id;
                 document.getElementById('edit-name').value = booking.name;
                 document.getElementById('edit-room').value = booking.room;
                 document.getElementById('edit-date').value = booking.date;
+                
+                // Update date restrictions for edit modal
+                updateDateRestrictions();
                 
                 // Reset edit time checkboxes
                 const editTimeCheckboxes = document.querySelectorAll('input[name="edit-time"]');
@@ -2662,6 +2956,18 @@
             document.getElementById('edit-date').addEventListener('change', async function() {
                 const room = document.getElementById('edit-room').value;
                 const date = this.value;
+                
+                // Validate date
+                const validation = validateBookingDate(date);
+                if (!validation.isValid) {
+                    showMessage(validation.message, 'error');
+                    // Reset to max date if exceeds limit
+                    const maxDate = getMaxSelectableDate();
+                    const maxDateStr = maxDate.toISOString().split('T')[0];
+                    this.value = maxDateStr;
+                    return;
+                }
+                
                 await updateEditAvailableTimes(room, date, currentBookingId);
             });
             
@@ -2678,7 +2984,7 @@
                 showMessage('ℹ️ Edit tempahan dibatalkan', 'info');
             });
             
-            // Edit form submission
+            // Edit form submission - DITAMBAH VALIDASI TARIKH
             editForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -2688,6 +2994,13 @@
                     date: document.getElementById('edit-date').value,
                     updatedAt: new Date().toISOString()
                 };
+                
+                // VALIDASI TARIKH MENGIKUT PERATURAN BARU
+                const dateValidation = validateBookingDate(updatedBooking.date);
+                if (!dateValidation.isValid) {
+                    showMessage(dateValidation.message, 'error');
+                    return;
+                }
                 
                 // Get selected times from edit form
                 const editTimeCheckboxes = document.querySelectorAll('input[name="edit-time"]:checked');
@@ -3088,7 +3401,7 @@
             
             // Set filter date to today if empty
             if (!filterDateInput.value) {
-                filterDateInput.value = today;
+                filterDateInput.value = todayStr;
             }
             
             // Update available times initially
