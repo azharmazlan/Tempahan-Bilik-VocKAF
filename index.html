@@ -1569,7 +1569,7 @@
             </div>
         </header>
 
-        <!-- Stats Overview -->
+        <!-- Stats Overview - SENTIASA UPDATE HARIAN -->
         <div class="stats-container">
             <div class="stat-card">
                 <div class="stat-number" id="today-bookings">0</div>
@@ -1590,6 +1590,10 @@
                     <div class="room-status">
                         <span class="room-name">Website:</span>
                         <span id="firebase-status-text" class="room-available">ONLINE</span>
+                    </div>
+                    <div class="room-status">
+                        <span class="room-name">Last Update:</span>
+                        <span id="last-update-time" class="room-available">Just now</span>
                     </div>
                 </div>
             </div>
@@ -1951,6 +1955,7 @@
             const availabilityGrid = document.getElementById('availability-grid');
             const dateInfo = document.getElementById('date-info');
             const editDateInfo = document.getElementById('edit-date-info');
+            const lastUpdateTime = document.getElementById('last-update-time');
             
             // NEW: Admin booking form elements
             const adminBookingForm = document.getElementById('admin-booking-form');
@@ -1964,7 +1969,7 @@
             const showAdminBookingFormBtn = document.getElementById('show-admin-booking-form');
             const adminDateInfo = document.getElementById('admin-date-info');
             
-            // Stats elements
+            // Stats elements - SENTIASA UPDATE
             const todayBookingsEl = document.getElementById('today-bookings');
             const bilikTersediaEl = document.getElementById('bilik-tersedia');
             const systemStatusEl = document.getElementById('system-status');
@@ -1975,6 +1980,8 @@
             let isAdminLoggedIn = false;
             let currentBookingId = null;
             let bookedTimesCache = {};
+            let lastStatsUpdate = null;
+            let statsUpdateInterval = null;
             
             // Time slots configuration
             const timeSlots = [
@@ -2006,6 +2013,95 @@
                     equipment: 'Meja serta kerusi,Wi-Fi,komputer,pencetak dan lain-lain'
                 }
             ];
+            
+            // ============================================
+            // FUNGSI BARU: SET SEMUA INPUT TARIKH KE HARI INI
+            // ============================================
+            
+            /**
+             * Fungsi untuk mendapatkan tarikh hari ini dalam format string
+             * @returns {string} - Tarikh dalam format YYYY-MM-DD
+             */
+            function getTodayString() {
+                const today = new Date();
+                // Gunakan masa setempat (local time) untuk dapatkan tarikh hari ini
+                const year = today.getFullYear();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            /**
+             * Fungsi untuk mengeset semua input tarikh ke tarikh hari ini
+             */
+            function setAllDateInputsToToday() {
+                const todayStr = getTodayString();
+                console.log("Setting all date inputs to today:", todayStr);
+                
+                // Set untuk booking form
+                dateInput.value = todayStr;
+                
+                // Set untuk filter tempahan
+                filterDateInput.value = todayStr;
+                
+                // Set untuk availability overview
+                availabilityDateInput.value = todayStr;
+                
+                // Set untuk admin booking form (default sahaja, admin boleh ubah)
+                adminBookingDate.value = todayStr;
+                
+                // Update date restrictions
+                updateDateRestrictions();
+                
+                // Update available times
+                updateAvailableTimes();
+                
+                // Update admin available times
+                updateAdminAvailableTimes();
+                
+                // Load room availability for today
+                loadRoomAvailability(todayStr);
+                
+                // Load bookings for today
+                if (document.querySelector('#view.tab-content.active')) {
+                    loadBookingsForDate(todayStr);
+                }
+            }
+            
+            /**
+             * Fungsi untuk memformat masa untuk last update
+             */
+            function updateLastUpdateTime() {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                lastUpdateTime.textContent = `${hours}:${minutes}`;
+                lastStatsUpdate = now;
+            }
+            
+            /**
+             * Fungsi untuk memulakan auto-refresh statistik
+             */
+            function startAutoRefreshStats() {
+                // Hentikan interval sedia ada jika ada
+                if (statsUpdateInterval) {
+                    clearInterval(statsUpdateInterval);
+                }
+                
+                // Mulakan interval baru untuk refresh statistik setiap 30 saat
+                statsUpdateInterval = setInterval(() => {
+                    loadStats();
+                    updateLastUpdateTime();
+                }, 30000); // 30 saat
+                
+                // Juga refresh apabila pengguna kembali ke tab
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        loadStats();
+                        updateLastUpdateTime();
+                    }
+                });
+            }
             
             // ============================================
             // FUNGSI BARU: PERATURAN TEMPAHAN MINGGUAN
@@ -2071,7 +2167,7 @@
             function updateDateRestrictions() {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                const todayStr = today.toISOString().split('T')[0];
+                const todayStr = getTodayString();
                 const maxDate = getMaxSelectableDate();
                 const maxDateStr = maxDate.toISOString().split('T')[0];
                 
@@ -2228,16 +2324,8 @@
                 return { isValid: true, message: '' };
             }
             
-            // Initialize date fields
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const todayStr = today.toISOString().split('T')[0];
-            dateInput.value = todayStr;
-            filterDateInput.value = todayStr;
-            availabilityDateInput.value = todayStr;
-            
-            // Set admin booking date to today as default
-            adminBookingDate.value = todayStr;
+            // Initialize: Set semua tarikh ke hari ini
+            setAllDateInputsToToday();
             
             // Set current date and year
             document.getElementById('current-date').textContent = new Date().toLocaleDateString('ms-MY', {
@@ -2259,14 +2347,18 @@
             // Test Firebase connection
             testFirebaseConnection();
             
-            // Load stats
+            // Load stats - SENTIASA UPDATE
             loadStats();
             
             // Load availability for today
-            loadRoomAvailability(todayStr);
+            loadRoomAvailability(availabilityDateInput.value);
             
             // APPLY DATE RESTRICTIONS
             updateDateRestrictions();
+            
+            // Start auto-refresh stats
+            startAutoRefreshStats();
+            updateLastUpdateTime();
             
             // Tab Switching
             tabs.forEach(tab => {
@@ -2341,7 +2433,7 @@
                 
                 if (selectedDate < today) {
                     showMessage('❌ Tarikh tidak boleh kurang dari hari ini', 'error');
-                    this.value = today.toISOString().split('T')[0];
+                    this.value = getTodayString();
                     return;
                 }
                 
@@ -2416,7 +2508,7 @@
                     
                     // Reset form
                     bookingForm.reset();
-                    dateInput.value = todayStr;
+                    dateInput.value = getTodayString();
                     timeWarning.classList.add('hidden');
                     
                     // Select first room by default
@@ -2433,8 +2525,9 @@
                     // Update available times
                     updateAvailableTimes();
                     
-                    // Update stats
+                    // Update stats - SENTIASA UPDATE
                     loadStats();
+                    updateLastUpdateTime();
                     
                     // Update room availability
                     loadRoomAvailability(date);
@@ -2501,7 +2594,7 @@
                     
                     // Reset form
                     adminBookingFormContent.reset();
-                    adminBookingDate.value = todayStr;
+                    adminBookingDate.value = getTodayString();
                     adminTimeWarning.classList.add('hidden');
                     
                     // Visual feedback
@@ -2515,8 +2608,9 @@
                     updateAvailableTimes();
                     updateAdminAvailableTimes();
                     
-                    // Update stats
+                    // Update stats - SENTIASA UPDATE
                     loadStats();
+                    updateLastUpdateTime();
                     
                     // Update room availability
                     loadRoomAvailability(date);
@@ -2539,7 +2633,7 @@
                     
                     // Reset form
                     adminBookingFormContent.reset();
-                    adminBookingDate.value = todayStr;
+                    adminBookingDate.value = getTodayString();
                     
                     // Update available times for admin form
                     updateAdminAvailableTimes();
@@ -2788,7 +2882,7 @@
                     
                     // Format the date for display
                     const formattedDate = formatDate(date);
-                    const isToday = date === todayStr;
+                    const isToday = date === getTodayString();
                     
                     // Create availability cards for each room
                     rooms.forEach(room => {
@@ -2876,11 +2970,12 @@
                 });
             }
             
-            // Load stats function
+            // Load stats function - SENTIASA UPDATE
             async function loadStats() {
                 try {
                     const snapshot = await database.ref('bookings').once('value');
                     
+                    const todayStr = getTodayString();
                     let todayCount = 0;
                     let roomAvailability = {};
                     
@@ -3375,8 +3470,9 @@
                     // Update admin available times
                     updateAdminAvailableTimes();
                     
-                    // Update stats
+                    // Update stats - SENTIASA UPDATE
                     loadStats();
+                    updateLastUpdateTime();
                     
                     // Update room availability
                     loadRoomAvailability(updatedBooking.date);
@@ -3419,8 +3515,9 @@
                         updateAvailableTimes();
                         updateAdminAvailableTimes();
                         
-                        // Update stats
+                        // Update stats - SENTIASA UPDATE
                         loadStats();
+                        updateLastUpdateTime();
                         
                         // Update room availability
                         loadRoomAvailability(booking.date);
@@ -3467,8 +3564,9 @@
                                 updateAvailableTimes();
                                 updateAdminAvailableTimes();
                                 
-                                // Update stats
+                                // Update stats - SENTIASA UPDATE
                                 loadStats();
+                                updateLastUpdateTime();
                                 
                                 // Update room availability
                                 loadRoomAvailability(booking.date);
@@ -3595,8 +3693,9 @@
                         clearOldDataBtn.classList.add('success-flash');
                         setTimeout(() => clearOldDataBtn.classList.remove('success-flash'), 800);
                         
-                        // Update stats
+                        // Update stats - SENTIASA UPDATE
                         loadStats();
+                        updateLastUpdateTime();
                         
                         loadAllBookingsForAdmin();
                     } else {
@@ -3658,6 +3757,10 @@
                         systemStatusEl.textContent = "100%";
                         systemStatusEl.style.color = "var(--success)";
                         console.log("Firebase Realtime Database connected!");
+                        
+                        // Update stats when connection is established
+                        loadStats();
+                        updateLastUpdateTime();
                     } else {
                         firebaseStatus.textContent = "OFFLINE";
                         firebaseStatusText.textContent = "OFFLINE";
@@ -3699,8 +3802,9 @@
                         console.log(`Auto-deleted ${deletedCount} old bookings`);
                         showMessage(`ℹ️ Sistem telah memadam ${deletedCount} tempahan lama secara automatik`, 'info');
                         
-                        // Update stats
+                        // Update stats - SENTIASA UPDATE
                         loadStats();
+                        updateLastUpdateTime();
                     }
                 } catch (error) {
                     console.error('Error auto-deleting old bookings:', error);
@@ -3713,11 +3817,6 @@
             
             // Auto-delete old bookings
             autoDeleteOldBookings();
-            
-            // Set filter date to today if empty
-            if (!filterDateInput.value) {
-                filterDateInput.value = todayStr;
-            }
             
             // Update available times initially
             updateAvailableTimes();
