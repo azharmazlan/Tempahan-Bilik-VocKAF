@@ -523,7 +523,7 @@
         }
 
         /* Buttons */
-        .btn-submit, .btn-filter, .btn-admin, .btn-admin-action {
+        .btn-submit, .btn-filter, .btn-admin, .btn-admin-action, .btn-admin-booking {
             background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
             color: white;
             border: none;
@@ -545,7 +545,7 @@
             overflow: hidden;
         }
 
-        .btn-submit::after, .btn-filter::after, .btn-admin::after, .btn-admin-action::after {
+        .btn-submit::after, .btn-filter::after, .btn-admin::after, .btn-admin-action::after, .btn-admin-booking::after {
             content: '';
             position: absolute;
             top: 0;
@@ -556,11 +556,11 @@
             transition: 0.5s;
         }
 
-        .btn-submit:hover::after, .btn-filter:hover::after, .btn-admin:hover::after, .btn-admin-action:hover::after {
+        .btn-submit:hover::after, .btn-filter:hover::after, .btn-admin:hover::after, .btn-admin-action:hover::after, .btn-admin-booking:hover::after {
             left: 100%;
         }
 
-        .btn-submit:hover, .btn-filter:hover, .btn-admin:hover {
+        .btn-submit:hover, .btn-filter:hover, .btn-admin:hover, .btn-admin-booking:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(45, 116, 218, 0.3);
         }
@@ -573,6 +573,15 @@
 
         .btn-admin-action:hover {
             box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-admin-booking {
+            background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);
+            box-shadow: 0 5px 15px rgba(147, 51, 234, 0.2);
+        }
+
+        .btn-admin-booking:hover {
+            box-shadow: 0 8px 20px rgba(147, 51, 234, 0.3);
         }
 
         /* Filter Section */
@@ -753,6 +762,40 @@
         .btn-delete-admin:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Admin Booking Form */
+        #admin-booking-form {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(45, 116, 218, 0.05) 100%);
+            border: 2px solid rgba(147, 51, 234, 0.2);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        #admin-booking-form h3 {
+            color: #9333ea;
+            border-bottom: 2px solid rgba(147, 51, 234, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-booking-info {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #6b21a8;
+            font-size: 0.95rem;
+        }
+
+        .admin-booking-info i {
+            color: #9333ea;
+            margin-right: 10px;
         }
 
         /* Modal */
@@ -1695,7 +1738,61 @@
                 <div id="admin-functions" class="hidden">
                     <h3><i class="fas fa-tools"></i> Fungsi Pentadbiran</h3>
                     
+                    <!-- Admin Booking Form -->
+                    <div id="admin-booking-form" class="hidden">
+                        <h3><i class="fas fa-crown"></i> Tempahan Pentadbir (Keistimewaan)</h3>
+                        <div class="admin-booking-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Keistimewaan Pentadbir:</strong> Anda boleh membuat tempahan untuk mana-mana tarikh (termasuk tarikh lepas dan hadapan tanpa sekatan mingguan).
+                        </div>
+                        <form id="admin-booking-form-content">
+                            <div class="form-group">
+                                <label for="admin-booking-name"><i class="fas fa-user-tie"></i> Nama Penempah</label>
+                                <input type="text" id="admin-booking-name" placeholder="Masukkan nama penuh penempah" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-booking-room"><i class="fas fa-door-closed"></i> Pilih Bilik</label>
+                                <select id="admin-booking-room" required>
+                                    <option value="">Pilih bilik...</option>
+                                    <option value="Pusat Sumber Alamanda">Pusat Sumber Alamanda</option>
+                                    <option value="Bilik APD">Bilik APD</option>
+                                    <option value="Bilik Self Learning">Bilik Self Learning</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-booking-date"><i class="fas fa-calendar-alt"></i> Tarikh Tempahan</label>
+                                <input type="date" id="admin-booking-date" required>
+                                <div id="admin-date-info" class="date-info-message">
+                                    <i class="fas fa-crown"></i>
+                                    <strong>Keistimewaan Pentadbir:</strong> Anda boleh memilih mana-mana tarikh tanpa sekatan.
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label><i class="fas fa-clock"></i> Masa Tempahan (Pilih satu atau lebih slot)</label>
+                                <div class="time-grid" id="admin-time-grid">
+                                    <!-- Time slots akan diisi oleh JavaScript -->
+                                </div>
+                                <div id="admin-time-warning" class="conflict-warning hidden">
+                                    <h4><i class="fas fa-exclamation-triangle"></i> Konflik Masa Dikesan</h4>
+                                    <p>Slot berikut telah ditempah oleh pengguna lain:</p>
+                                    <ul id="admin-conflict-list" class="conflict-list"></ul>
+                                    <p style="margin-top: 10px; font-size: 0.9rem;"><i class="fas fa-info-circle"></i> Sila pilih slot masa yang lain.</p>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-admin-booking">
+                                <i class="fas fa-check-circle"></i> Simpan Tempahan Pentadbir
+                            </button>
+                        </form>
+                    </div>
+                    
                     <div class="admin-actions">
+                        <button id="show-admin-booking-form" class="btn-admin-action">
+                            <i class="fas fa-plus-circle"></i> Buat Tempahan Pentadbir
+                        </button>
                         <button id="download-excel" class="btn-admin-action">
                             <i class="fas fa-file-export"></i> Eksport Data (Excel)
                         </button>
@@ -1855,6 +1952,18 @@
             const dateInfo = document.getElementById('date-info');
             const editDateInfo = document.getElementById('edit-date-info');
             
+            // NEW: Admin booking form elements
+            const adminBookingForm = document.getElementById('admin-booking-form');
+            const adminBookingFormContent = document.getElementById('admin-booking-form-content');
+            const adminBookingName = document.getElementById('admin-booking-name');
+            const adminBookingRoom = document.getElementById('admin-booking-room');
+            const adminBookingDate = document.getElementById('admin-booking-date');
+            const adminTimeGrid = document.getElementById('admin-time-grid');
+            const adminTimeWarning = document.getElementById('admin-time-warning');
+            const adminConflictList = document.getElementById('admin-conflict-list');
+            const showAdminBookingFormBtn = document.getElementById('show-admin-booking-form');
+            const adminDateInfo = document.getElementById('admin-date-info');
+            
             // Stats elements
             const todayBookingsEl = document.getElementById('today-bookings');
             const bilikTersediaEl = document.getElementById('bilik-tersedia');
@@ -1975,7 +2084,7 @@
                     });
                 };
                 
-                // Update input tarikh tempahan
+                // Update input tarikh tempahan (untuk pengguna biasa)
                 dateInput.min = todayStr;
                 dateInput.max = maxDateStr;
                 
@@ -1986,6 +2095,10 @@
                 // Update input tarikh edit
                 document.getElementById('edit-date').min = todayStr;
                 document.getElementById('edit-date').max = maxDateStr;
+                
+                // TETAPI: Untuk admin booking form, tiada sekatan
+                // adminBookingDate.min = ''; // Tiada minimum
+                // adminBookingDate.max = ''; // Tiada maksimum
                 
                 // Update info message untuk booking form
                 const nextWeekAvailable = isNextWeekAvailable();
@@ -2053,12 +2166,21 @@
             /**
              * Fungsi untuk memvalidasi tarikh tempahan mengikut peraturan
              * @param {string} dateStr - Tarikh dalam format YYYY-MM-DD
+             * @param {boolean} isAdmin - Sama ada pengguna adalah admin
              * @returns {Object} - {isValid: boolean, message: string}
              */
-            function validateBookingDate(dateStr) {
+            function validateBookingDate(dateStr, isAdmin = false) {
                 const selectedDate = new Date(dateStr);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
+                
+                // Jika admin, skip semua validasi tarikh
+                if (isAdmin) {
+                    return {
+                        isValid: true,
+                        message: '✅ Keistimewaan pentadbir: Tarikh diterima'
+                    };
+                }
                 
                 // Semak tarikh tidak lebih awal dari hari ini
                 if (selectedDate < today) {
@@ -2114,6 +2236,9 @@
             filterDateInput.value = todayStr;
             availabilityDateInput.value = todayStr;
             
+            // Set admin booking date to today as default
+            adminBookingDate.value = todayStr;
+            
             // Set current date and year
             document.getElementById('current-date').textContent = new Date().toLocaleDateString('ms-MY', {
                 weekday: 'long',
@@ -2126,6 +2251,7 @@
             // Populate time slots
             populateTimeSlots(timeGrid, 'time');
             populateTimeSlots(editTimeGrid, 'edit-time');
+            populateTimeSlots(adminTimeGrid, 'admin-time');
             
             // Initialize room status list
             initializeRoomStatusList();
@@ -2179,7 +2305,7 @@
             // Event listeners to update available times when room or date changes
             dateInput.addEventListener('change', function() {
                 // Validate date before proceeding
-                const validation = validateBookingDate(this.value);
+                const validation = validateBookingDate(this.value, false);
                 if (!validation.isValid) {
                     showMessage(validation.message, 'error');
                     // Reset to max date if exceeds limit
@@ -2196,6 +2322,15 @@
             roomInputs.forEach(input => {
                 input.addEventListener('change', updateAvailableTimes);
             });
+            
+            // Event listener for admin booking date change
+            adminBookingDate.addEventListener('change', function() {
+                // Admin can choose any date, no validation needed
+                updateAdminAvailableTimes();
+            });
+            
+            // Event listener for admin booking room change
+            adminBookingRoom.addEventListener('change', updateAdminAvailableTimes);
             
             // Event listener for availability date change
             availabilityDateInput.addEventListener('change', function() {
@@ -2239,7 +2374,7 @@
                 }
                 
                 // VALIDASI TARIKH MENGIKUT PERATURAN BARU
-                const dateValidation = validateBookingDate(date);
+                const dateValidation = validateBookingDate(date, false);
                 if (!dateValidation.isValid) {
                     showMessage(dateValidation.message, 'error');
                     return;
@@ -2263,7 +2398,8 @@
                     date: date,
                     times: times,
                     createdAt: new Date().toISOString(),
-                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    isAdminBooking: false // Tanda tempahan biasa
                 };
                 
                 showLoading('Menyimpan tempahan...');
@@ -2309,6 +2445,108 @@
                     console.error('Error saving booking:', error);
                     hideLoading();
                     showMessage('❌ Ralat: Tempahan tidak berjaya disimpan', 'error');
+                }
+            });
+            
+            // NEW: Admin Booking Form Submission
+            adminBookingFormContent.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Get form values
+                const name = adminBookingName.value;
+                const room = adminBookingRoom.value;
+                const date = adminBookingDate.value;
+                const timeCheckboxes = document.querySelectorAll('input[name="admin-time"]:checked');
+                
+                // Validation
+                if (!name || !room || !date || timeCheckboxes.length === 0) {
+                    showMessage('Sila isi semua maklumat yang diperlukan', 'error');
+                    return;
+                }
+                
+                // Get selected times
+                const times = Array.from(timeCheckboxes).map(cb => cb.value);
+                
+                // Check for time conflicts
+                const conflicts = await checkTimeConflicts(room, date, times);
+                
+                if (conflicts.length > 0) {
+                    showTimeConflictWarning(conflicts, adminConflictList, adminTimeWarning);
+                    return;
+                }
+                
+                // Create booking object
+                const booking = {
+                    name: name,
+                    room: room,
+                    date: date,
+                    times: times,
+                    createdAt: new Date().toISOString(),
+                    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                    isAdminBooking: true, // Tanda tempahan admin
+                    bookedByAdmin: true
+                };
+                
+                showLoading('Menyimpan tempahan pentadbir...');
+                
+                try {
+                    // Save to Firebase Realtime Database
+                    const newBookingRef = database.ref('bookings').push();
+                    await newBookingRef.set(booking);
+                    const bookingId = newBookingRef.key;
+                    
+                    // Clear cache for this room and date
+                    const cacheKey = `${room}-${date}`;
+                    delete bookedTimesCache[cacheKey];
+                    
+                    // Reset form
+                    adminBookingFormContent.reset();
+                    adminBookingDate.value = todayStr;
+                    adminTimeWarning.classList.add('hidden');
+                    
+                    // Visual feedback
+                    adminBookingForm.classList.add('success-flash');
+                    setTimeout(() => adminBookingForm.classList.remove('success-flash'), 800);
+                    
+                    hideLoading();
+                    showMessage('✅ Tempahan pentadbir berjaya disimpan!', 'success');
+                    
+                    // Update available times
+                    updateAvailableTimes();
+                    updateAdminAvailableTimes();
+                    
+                    // Update stats
+                    loadStats();
+                    
+                    // Update room availability
+                    loadRoomAvailability(date);
+                    
+                    // Reload admin bookings
+                    loadAllBookingsForAdmin();
+                } catch (error) {
+                    console.error('Error saving admin booking:', error);
+                    hideLoading();
+                    showMessage('❌ Ralat: Tempahan pentadbir tidak berjaya disimpan', 'error');
+                }
+            });
+            
+            // NEW: Show admin booking form button
+            showAdminBookingFormBtn.addEventListener('click', () => {
+                if (adminBookingForm.classList.contains('hidden')) {
+                    adminBookingForm.classList.remove('hidden');
+                    showAdminBookingFormBtn.innerHTML = '<i class="fas fa-times-circle"></i> Tutup Form Tempahan Pentadbir';
+                    showAdminBookingFormBtn.style.background = 'linear-gradient(135deg, var(--warning) 0%, #fbbf24 100%)';
+                    
+                    // Reset form
+                    adminBookingFormContent.reset();
+                    adminBookingDate.value = todayStr;
+                    
+                    // Update available times for admin form
+                    updateAdminAvailableTimes();
+                } else {
+                    adminBookingForm.classList.add('hidden');
+                    showAdminBookingFormBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Buat Tempahan Pentadbir';
+                    showAdminBookingFormBtn.style.background = 'linear-gradient(135deg, var(--success) 0%, #34d399 100%)';
                 }
             });
             
@@ -2372,7 +2610,8 @@
                                         conflicts.push({
                                             time: time,
                                             bookedBy: booking.name,
-                                            bookingId: bookingId
+                                            bookingId: bookingId,
+                                            isAdminBooking: booking.isAdminBooking || false
                                         });
                                     }
                                 });
@@ -2393,8 +2632,9 @@
                 
                 conflicts.forEach(conflict => {
                     const li = document.createElement('li');
+                    const adminBadge = conflict.isAdminBooking ? ' <span style="background: #9333ea; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem;">Admin</span>' : '';
                     li.innerHTML = `
-                        <span><strong>${conflict.time}</strong></span>
+                        <span><strong>${conflict.time}</strong>${adminBadge}</span>
                         <span>Ditempah oleh: <strong>${conflict.bookedBy}</strong></span>
                     `;
                     listElement.appendChild(li);
@@ -2468,6 +2708,70 @@
                     
                 } catch (error) {
                     console.error('Error updating available times:', error);
+                }
+            }
+            
+            // NEW: Function to update available times for admin booking form
+            async function updateAdminAvailableTimes() {
+                const room = adminBookingRoom.value;
+                const date = adminBookingDate.value;
+                
+                if (!room || !date) {
+                    return;
+                }
+                
+                // Disable all time options first
+                const timeOptions = document.querySelectorAll('#admin-time-grid .time-option');
+                timeOptions.forEach(option => {
+                    option.classList.remove('disabled');
+                    const checkbox = option.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.disabled = false;
+                        checkbox.checked = false;
+                    }
+                });
+                
+                // Hide warning
+                adminTimeWarning.classList.add('hidden');
+                
+                try {
+                    // Get booked times for this room and date
+                    const cacheKey = `${room}-${date}`;
+                    let bookedTimes = [];
+                    
+                    if (bookedTimesCache[cacheKey]) {
+                        bookedTimes = bookedTimesCache[cacheKey];
+                    } else {
+                        const snapshot = await database.ref('bookings').once('value');
+                        
+                        if (snapshot.exists()) {
+                            const bookings = snapshot.val();
+                            
+                            for (const bookingId in bookings) {
+                                const booking = bookings[bookingId];
+                                if (booking.room === room && booking.date === date) {
+                                    bookedTimes = bookedTimes.concat(booking.times || []);
+                                }
+                            }
+                            
+                            // Cache the results
+                            bookedTimesCache[cacheKey] = bookedTimes;
+                        }
+                    }
+                    
+                    // Disable booked time options
+                    timeOptions.forEach(option => {
+                        const checkbox = option.querySelector('input[type="checkbox"]');
+                        const timeValue = checkbox.value;
+                        
+                        if (bookedTimes.includes(timeValue)) {
+                            option.classList.add('disabled');
+                            checkbox.disabled = true;
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error('Error updating admin available times:', error);
                 }
             }
             
@@ -2752,6 +3056,9 @@
                 div.className = 'booking-item';
                 div.dataset.id = booking.id;
                 
+                // Add admin badge if it's an admin booking
+                const adminBadge = booking.isAdminBooking ? '<span style="background: #9333ea; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; margin-left: 8px;">Admin</span>' : '';
+                
                 const bookingSlots = booking.times || [];
                 
                 // Create time slot HTML - paparkan slot masa sahaja tanpa label "TAMAT"
@@ -2763,7 +3070,7 @@
                 div.innerHTML = `
                     <div class="booking-item-header">
                         <div class="booking-name">
-                            <i class="fas fa-user"></i> ${booking.name}
+                            <i class="fas fa-user"></i> ${booking.name} ${adminBadge}
                         </div>
                         <div class="booking-date"><i class="fas fa-calendar"></i> ${formatDate(booking.date)}</div>
                     </div>
@@ -2957,8 +3264,8 @@
                 const room = document.getElementById('edit-room').value;
                 const date = this.value;
                 
-                // Validate date
-                const validation = validateBookingDate(date);
+                // Validate date (for edit modal, we still apply restrictions unless it's an admin booking)
+                const validation = validateBookingDate(date, false);
                 if (!validation.isValid) {
                     showMessage(validation.message, 'error');
                     // Reset to max date if exceeds limit
@@ -2996,7 +3303,7 @@
                 };
                 
                 // VALIDASI TARIKH MENGIKUT PERATURAN BARU
-                const dateValidation = validateBookingDate(updatedBooking.date);
+                const dateValidation = validateBookingDate(updatedBooking.date, false);
                 if (!dateValidation.isValid) {
                     showMessage(dateValidation.message, 'error');
                     return;
@@ -3028,13 +3335,14 @@
                 // Add times to updated booking
                 updatedBooking.times = times;
                 
-                // Keep existing createdAt and expiresAt
+                // Keep existing createdAt and expiresAt and isAdminBooking status
                 try {
                     const existingSnapshot = await database.ref(`bookings/${currentBookingId}`).once('value');
                     if (existingSnapshot.exists()) {
                         const existingBooking = existingSnapshot.val();
                         updatedBooking.createdAt = existingBooking.createdAt;
                         updatedBooking.expiresAt = existingBooking.expiresAt;
+                        updatedBooking.isAdminBooking = existingBooking.isAdminBooking || false;
                     }
                 } catch (error) {
                     console.error('Error getting existing booking:', error);
@@ -3063,6 +3371,9 @@
                     
                     // Update available times in booking form
                     updateAvailableTimes();
+                    
+                    // Update admin available times
+                    updateAdminAvailableTimes();
                     
                     // Update stats
                     loadStats();
@@ -3106,6 +3417,7 @@
                         
                         // Update available times
                         updateAvailableTimes();
+                        updateAdminAvailableTimes();
                         
                         // Update stats
                         loadStats();
@@ -3153,6 +3465,7 @@
                                 
                                 // Update available times
                                 updateAvailableTimes();
+                                updateAdminAvailableTimes();
                                 
                                 // Update stats
                                 loadStats();
@@ -3192,6 +3505,7 @@
                             'Bilik': booking.room,
                             'Tarikh Tempahan': booking.date,
                             'Slot Masa': booking.times.join(', '),
+                            'Jenis Tempahan': booking.isAdminBooking ? 'Pentadbir' : 'Biasa',
                             'Tarikh Dicipta': booking.createdAt ? new Date(booking.createdAt).toLocaleString('ms-MY') : 'N/A',
                             'Tarikh Kemaskini': booking.updatedAt ? new Date(booking.updatedAt).toLocaleString('ms-MY') : 'Tidak pernah dikemaskini',
                             'ID Tempahan': bookingId
@@ -3207,6 +3521,7 @@
                         {wch: 20}, // Bilik
                         {wch: 15}, // Tarikh Tempahan
                         {wch: 30}, // Slot Masa
+                        {wch: 15}, // Jenis Tempahan
                         {wch: 25}, // Tarikh Dicipta
                         {wch: 25}, // Tarikh Kemaskini
                         {wch: 20}, // ID Tempahan
