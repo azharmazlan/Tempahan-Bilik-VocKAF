@@ -1551,8 +1551,10 @@
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div>
-                    <h1>Sistem Tempahan Bilik VocKAF</h1>
-                    <p class="subtitle">Untuk Tempahan Pusat Sumber Alamanda, Bilik APD & Bilik Self Learning </p>
+                    <h1> Tempahan  Bilik Khas VocKAF</h1>
+                    <p class="subtitle">Pusat Sumber  Alamanda (PSA) </p>
+                    <p class="subtitle">Bilik Multimedia Angsana(APD) </p>
+                    <p class="subtitle">Bilik Akses (Student Centered Learning) </p>
                     <p class="subtitle"> - Pastikan Status Sistem website "ONLINE" sebelum membuat tempahan</p>
                 </div>
             </div>
@@ -1633,8 +1635,10 @@
                 <h2><i class="fas fa-calendar-plus"></i> Buat Tempahan Baru</h2>
                 <form id="booking-form">
                     <div class="form-group">
-                        <label for="name"><i class="fas fa-user-tie"></i> Nama Penempah</label>
-                        <input type="text" id="name" placeholder="Masukkan nama penuh penempah" required>
+                        <label for="name"><i class="fas fa-user-tie"></i> Nama Penempah (kelas/program yang dijalankan) </label>
+                         <label for="name"><i class="fas fa-user-tie"></i> contoh: LEOW JIA YI (2DVM ETN/ PEMBENTANGAN PB) </label>
+                         <label for="name"><i class="fas fa-user-tie"></i> contoh: LEOW JIA YI (UNIT PUSAT SUMBER/ KURSUS BERSAMA UMT) </label>
+                        <input type="text" id="name" placeholder="Masukkan nama penuh penempah , kelas terlibat dan program yang dijalankan." required>
                     </div>
 
                     <div class="form-group">
@@ -1651,21 +1655,21 @@
                                 </label>
                             </div>
                             <div class="room-option">
-                                <input type="radio" id="room2" name="room" value="Bilik APD">
+                                <input type="radio" id="room2" name="room" value="Bilik Multimedia Angsana">
                                 <label for="room2">
                                     <i class="fas fa-desktop"></i>
                                     <div class="room-info">
-                                        <span>Bilik APD</span>
+                                        <span>Bilik Multimedia Angsana</span>
                                         <p>Kapasiti: 50 orang | Kelengkapan:Projektor,papan putih,meja serta kerusi,wifi dan lain-lain</p>
                                     </div>
                                 </label>
                             </div>
                             <div class="room-option">
-                                <input type="radio" id="room3" name="room" value="Bilik Self Learning">
+                                <input type="radio" id="room3" name="room" value="Bilik Akses">
                                 <label for="room3">
                                     <i class="fas fa-graduation-cap"></i>
                                     <div class="room-info">
-                                        <span>Bilik Self Learning</span>
+                                        <span>Bilik Akses</span>
                                         <p>Kapasiti: 10 orang | Kelengkapan: Meja serta kerusi,Wi-Fi,komputer,pencetak dan lain-lain</p>
                                     </div>
                                 </label>
@@ -1760,8 +1764,8 @@
                                 <select id="admin-booking-room" required>
                                     <option value="">Pilih bilik...</option>
                                     <option value="Pusat Sumber Alamanda">Pusat Sumber Alamanda</option>
-                                    <option value="Bilik APD">Bilik APD</option>
-                                    <option value="Bilik Self Learning">Bilik Self Learning</option>
+                                    <option value="Bilik Multimedia Angsana">Bilik Multimedia Angsana</option>
+                                    <option value="Bilik Akses">Bilik Akses</option>
                                 </select>
                             </div>
 
@@ -1854,8 +1858,8 @@
                     <label for="edit-room">Bilik</label>
                     <select id="edit-room" required>
                         <option value="Pusat Sumber Alamanda">Pusat Sumber Alamanda</option>
-                        <option value="Bilik APD">Bilik APD</option>
-                        <option value="Bilik Self Learning">Bilik Self Learning</option>
+                        <option value="Bilik Multimedia Angsana">Bilik Multimedia Angsana</option>
+                        <option value="Bilik Akses">Bilik Akses</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1999,15 +2003,15 @@
                     equipment: 'komputer,pencetak,wifi buku rujukan dan lain-lain'
                 },
                 { 
-                    id: 'Bilik APD', 
-                    name: 'Bilik APD', 
+                    id: 'Bilik Multimedia Angsana', 
+                    name: 'Bilik Multimedia Angsana', 
                     icon: 'fa-desktop',
                     capacity: '50 orang',
                     equipment: 'Projektor,papan putih,meja serta kerusi,wifi dan lain-lain'
                 },
                 { 
-                    id: 'Bilik Self Learning', 
-                    name: 'Bilik Self Learning', 
+                    id: 'Bilik Akses', 
+                    name: 'Bilik Akses', 
                     icon: 'fa-graduation-cap',
                     capacity: '10 orang',
                     equipment: 'Meja serta kerusi,Wi-Fi,komputer,pencetak dan lain-lain'
