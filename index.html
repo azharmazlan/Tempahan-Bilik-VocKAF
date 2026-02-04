@@ -369,7 +369,8 @@
         .form-group input[type="text"],
         .form-group input[type="date"],
         .form-group input[type="password"],
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 18px;
             border: 2px solid var(--gray-light);
@@ -378,10 +379,18 @@
             transition: var(--transition);
             background: white;
             color: var(--dark);
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            font-family: 'Inter', sans-serif;
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             border-color: var(--secondary);
             outline: none;
             box-shadow: 0 0 0 3px rgba(45, 116, 218, 0.1);
@@ -447,11 +456,44 @@
             height: 100%;
         }
 
+        .room-option.disabled label {
+            cursor: not-allowed;
+            opacity: 0.7;
+            background: #f8f9fa;
+            border-color: #e9ecef;
+        }
+
+        .room-option.disabled label i,
+        .room-option.disabled label .room-info span,
+        .room-option.disabled label .room-info p {
+            opacity: 0.7;
+        }
+
+        .room-option.disabled .admin-only-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
         .room-option input[type="radio"]:checked + label {
             background: linear-gradient(to right, rgba(45, 116, 218, 0.05), rgba(255, 107, 53, 0.05));
             border-color: var(--secondary);
             box-shadow: 0 5px 15px rgba(45, 116, 218, 0.15);
             transform: translateY(-3px);
+        }
+
+        .room-option.disabled input[type="radio"]:checked + label {
+            background: white;
+            border-color: var(--gray-light);
+            box-shadow: none;
+            transform: none;
         }
 
         .room-option label i {
@@ -473,6 +515,12 @@
             transform: scale(1.1);
         }
 
+        .room-option.disabled input[type="radio"]:checked + label i {
+            background: rgba(45, 116, 218, 0.1);
+            color: var(--secondary);
+            transform: none;
+        }
+
         .room-option label .room-info {
             flex: 1;
         }
@@ -483,6 +531,10 @@
             display: block;
             margin-bottom: 5px;
             color: var(--primary);
+        }
+
+        .room-option.disabled label span {
+            color: var(--gray);
         }
 
         .room-option label p {
@@ -737,6 +789,27 @@
             font-size: 0.95rem;
             font-weight: 600;
             border: 1px solid rgba(45, 116, 218, 0.2);
+        }
+
+        .booking-notes {
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: var(--radius);
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: var(--dark);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .booking-notes strong {
+            color: var(--warning);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
         }
 
         /* Admin Functions */
@@ -1710,17 +1783,22 @@
                 <h2><i class="fas fa-calendar-plus"></i> Buat Tempahan Baru</h2>
                 <form id="booking-form">
                     <div class="form-group">
-                        <label for="name"><i class="fas fa-user-tie"></i> Nama Penempah (kelas/program yang dijalankan) </label>
-                         <label for="name"><i class="fas fa-user-tie"></i> contoh: LEOW JIA YI (2DVM ETN/ PEMBENTANGAN PB) </label>
-                         <label for="name"><i class="fas fa-user-tie"></i> contoh: LEOW JIA YI (UNIT PUSAT SUMBER/ KURSUS BERSAMA UMT) </label>
-                        <input type="text" id="name" placeholder="Masukkan nama penuh penempah , kelas terlibat dan program yang dijalankan." required>
+                        <label for="name"><i class="fas fa-user-tie"></i> Nama Penempah</label>
+                        <input type="text" id="name" placeholder="Masukkan nama penuh penempah" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes"><i class="fas fa-sticky-note"></i> Catatan (Kelas/Aktiviti yang akan dijalankan)</label>
+                        <textarea id="notes" placeholder="Contoh: (2DVM ETN/ PEMBENTANGAN PB)
+@ (UNIT PUSAT SUMBER/ KURSUS BERSAMA UMT)." rows="3"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="room"><i class="fas fa-door-closed"></i> Pilih Bilik</label>
                         <div class="room-options">
-                            <div class="room-option">
-                                <input type="radio" id="room1" name="room" value="Pusat Sumber Alamanda" required>
+                            <!-- Pusat Sumber Alamanda - Hanya untuk Admin sahaja -->
+                            <div class="room-option disabled">
+                                <input type="radio" id="room1" name="room" value="Pusat Sumber Alamanda" disabled>
                                 <label for="room1">
                                     <i class="fas fa-book-reader"></i>
                                     <div class="room-info">
@@ -1728,9 +1806,10 @@
                                         <p>Kapasiti: 30 orang | Kelengkapan: komputer,pencetak,wifi buku rujukan dan lain-lain</p>
                                     </div>
                                 </label>
+                                
                             </div>
                             <div class="room-option">
-                                <input type="radio" id="room2" name="room" value="Bilik Multimedia Angsana">
+                                <input type="radio" id="room2" name="room" value="Bilik Multimedia Angsana" required>
                                 <label for="room2">
                                     <i class="fas fa-desktop"></i>
                                     <div class="room-info">
@@ -1826,12 +1905,17 @@
                         <h3><i class="fas fa-crown"></i> Tempahan Pentadbir (Keistimewaan)</h3>
                         <div class="admin-booking-info">
                             <i class="fas fa-info-circle"></i>
-                            <strong>Keistimewaan Pentadbir:</strong> Anda boleh membuat tempahan untuk mana-mana tarikh (termasuk tarikh lepas dan hadapan tanpa sekatan mingguan).
+                            <strong>Keistimewaan Pentadbir:</strong> Anda boleh membuat tempahan untuk mana-mana tarikh (termasuk tarikh lepas dan hadapan tanpa sekatan mingguan) dan boleh tempah bilik Pusat Sumber Alamanda.
                         </div>
                         <form id="admin-booking-form-content">
                             <div class="form-group">
                                 <label for="admin-booking-name"><i class="fas fa-user-tie"></i> Nama Penempah</label>
                                 <input type="text" id="admin-booking-name" placeholder="Masukkan nama penuh penempah" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="admin-booking-notes"><i class="fas fa-sticky-note"></i> Catatan (Kelas/Aktiviti yang akan dijalankan)</label>
+                                <textarea id="admin-booking-notes" placeholder="CATATAN." rows="3"></textarea>
                             </div>
 
                             <div class="form-group">
@@ -1929,6 +2013,10 @@
                 <div class="form-group">
                     <label for="edit-name">Nama Penempah</label>
                     <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-notes">Catatan (Aktiviti yang akan dijalankan)</label>
+                    <textarea id="edit-notes" placeholder="Contoh: Perbincangan projek, Mesyuarat, Pembentangan, dll." rows="3"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="edit-room">Bilik</label>
@@ -2049,6 +2137,11 @@
             const showAdminBookingFormBtn = document.getElementById('show-admin-booking-form');
             const adminDateInfo = document.getElementById('admin-date-info');
             
+            // NEW: Notes elements
+            const notesInput = document.getElementById('notes');
+            const adminBookingNotes = document.getElementById('admin-booking-notes');
+            const editNotes = document.getElementById('edit-notes');
+            
             // Stats elements - SENTIASA UPDATE
             const todayBookingsEl = document.getElementById('today-bookings');
             const bilikTersediaEl = document.getElementById('bilik-tersedia');
@@ -2076,21 +2169,24 @@
                     name: 'Pusat Sumber Alamanda', 
                     icon: 'fa-book-reader',
                     capacity: '30 orang',
-                    equipment: 'komputer,pencetak,wifi buku rujukan dan lain-lain'
+                    equipment: 'komputer,pencetak,wifi buku rujukan dan lain-lain',
+                    adminOnly: true
                 },
                 { 
                     id: 'Bilik Multimedia Angsana', 
                     name: 'Bilik Multimedia Angsana', 
                     icon: 'fa-desktop',
                     capacity: '50 orang',
-                    equipment: 'Projektor,papan putih,meja serta kerusi,wifi dan lain-lain'
+                    equipment: 'Projektor,papan putih,meja serta kerusi,wifi dan lain-lain',
+                    adminOnly: false
                 },
                 { 
                     id: 'Bilik Akses', 
                     name: 'Bilik Akses', 
                     icon: 'fa-graduation-cap',
                     capacity: '10 orang',
-                    equipment: 'Meja serta kerusi,Wi-Fi,komputer,pencetak dan lain-lain'
+                    equipment: 'Meja serta kerusi,Wi-Fi,komputer,pencetak dan lain-lain',
+                    adminOnly: false
                 }
             ];
             
@@ -2333,7 +2429,6 @@
                                 <p style="margin-top: 5px; margin-bottom: 0; font-size: 0.9rem;">
                                     Had tarikh: hingga ${formatDate(maxSelectableDate)}
                                 </p>
-                            </div>
                         `;
                     }
                 }
@@ -2529,12 +2624,13 @@
                 loadRoomAvailability(this.value);
             });
             
-            // Booking Form Submission - DITAMBAH VALIDASI TARIKH
+            // Booking Form Submission - DITAMBAH VALIDASI TARIKH DAN NOTES
             bookingForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 // Get form values
                 const name = document.getElementById('name').value;
+                const notes = notesInput.value;
                 const room = document.querySelector('input[name="room"]:checked')?.value;
                 const date = dateInput.value;
                 const timeCheckboxes = document.querySelectorAll('input[name="time"]:checked');
@@ -2566,6 +2662,7 @@
                 // Create booking object
                 const booking = {
                     name: name,
+                    notes: notes,
                     room: room,
                     date: date,
                     times: times,
@@ -2591,8 +2688,8 @@
                     dateInput.value = getTodayString();
                     timeWarning.classList.add('hidden');
                     
-                    // Select first room by default
-                    document.getElementById('room1').checked = true;
+                    // Select first available room by default (skip admin-only room)
+                    document.getElementById('room2').checked = true;
                     
                     // Visual feedback
                     const formCard = bookingForm.closest('.card');
@@ -2627,6 +2724,7 @@
                 
                 // Get form values
                 const name = adminBookingName.value;
+                const notes = adminBookingNotes.value;
                 const room = adminBookingRoom.value;
                 const date = adminBookingDate.value;
                 const timeCheckboxes = document.querySelectorAll('input[name="admin-time"]:checked');
@@ -2651,6 +2749,7 @@
                 // Create booking object
                 const booking = {
                     name: name,
+                    notes: notes,
                     room: room,
                     date: date,
                     times: times,
@@ -3002,6 +3101,9 @@
                             statusClass = 'status-available';
                         }
                         
+                        // Add admin only badge if needed
+                        const adminBadge = room.adminOnly ? '<div style="margin-top: 10px;"><span style="background: var(--danger); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;"></span></div>' : '';
+                        
                         card.innerHTML = `
                             <div class="availability-card-header">
                                 <i class="fas ${room.icon}"></i>
@@ -3014,6 +3116,8 @@
                             <div class="availability-status ${statusClass}">
                                 ${statusText}
                             </div>
+                            
+                            ${adminBadge}
                             
                             <div class="slots-info">
                                 <h5>Slot Masa ${isToday ? 'Hari Ini' : `pada ${formattedDate}`}:</h5>
@@ -3127,10 +3231,11 @@
                         
                         const roomStatus = document.createElement('div');
                         roomStatus.className = 'room-status';
+                        const adminLabel = room.adminOnly ? ' (Admin)' : '';
                         roomStatus.innerHTML = `
                             <span class="room-name">
                                 <span class="room-status-dot ${isAvailable ? 'dot-available' : 'dot-full'}"></span>
-                                ${room.name}
+                                ${room.name}${adminLabel}
                             </span>
                             <span class="${isAvailable ? 'room-available' : 'room-full'}">
                                 ${isAvailable ? 'AVAILABLE' : 'FULL'}
@@ -3225,7 +3330,7 @@
                 }
             }
             
-            // Create booking element
+            // Create booking element - DITAMBAH NOTES
             function createBookingElement(booking, isAdmin = false) {
                 const div = document.createElement('div');
                 div.className = 'booking-item';
@@ -3242,6 +3347,17 @@
                     timesHtml += `<span class="booking-time">${time}</span>`;
                 });
                 
+                // Create notes HTML if exists
+                let notesHtml = '';
+                if (booking.notes && booking.notes.trim() !== '') {
+                    notesHtml = `
+                        <div class="booking-notes">
+                            <strong><i class="fas fa-sticky-note"></i> Catatan Aktiviti:</strong>
+                            <div>${booking.notes}</div>
+                        </div>
+                    `;
+                }
+                
                 div.innerHTML = `
                     <div class="booking-item-header">
                         <div class="booking-name">
@@ -3254,6 +3370,7 @@
                         <div><i class="fas fa-clock"></i> Slot Masa:</div>
                         ${timesHtml || '<span style="color: var(--gray);">Tiada slot masa</span>'}
                     </div>
+                    ${notesHtml}
                 `;
                 
                 if (isAdmin) {
@@ -3347,11 +3464,12 @@
                 }
             }
             
-            // Open edit modal - DITAMBAH UPDATE DATE RESTRICTIONS
+            // Open edit modal - DITAMBAH UPDATE DATE RESTRICTIONS DAN NOTES
             async function openEditModal(booking) {
                 currentBookingId = booking.id;
                 document.getElementById('edit-id').value = booking.id;
                 document.getElementById('edit-name').value = booking.name;
+                document.getElementById('edit-notes').value = booking.notes || '';
                 document.getElementById('edit-room').value = booking.room;
                 document.getElementById('edit-date').value = booking.date;
                 
@@ -3466,12 +3584,13 @@
                 showMessage('ℹ️ Edit tempahan dibatalkan', 'info');
             });
             
-            // Edit form submission - DITAMBAH VALIDASI TARIKH
+            // Edit form submission - DITAMBAH VALIDASI TARIKH DAN NOTES
             editForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 const updatedBooking = {
                     name: document.getElementById('edit-name').value,
+                    notes: document.getElementById('edit-notes').value,
                     room: document.getElementById('edit-room').value,
                     date: document.getElementById('edit-date').value,
                     updatedAt: new Date().toISOString()
@@ -3660,7 +3779,7 @@
                 }
             }
             
-            // Download Excel
+            // Download Excel - DITAMBAH NOTES
             downloadExcelBtn.addEventListener('click', async () => {
                 showLoading('Menyediakan fail Excel...');
                 
@@ -3680,6 +3799,7 @@
                         const booking = bookings[bookingId];
                         data.push({
                             'Nama Penempah': booking.name,
+                            'Catatan Aktiviti': booking.notes || '',
                             'Bilik': booking.room,
                             'Tarikh Tempahan': booking.date,
                             'Slot Masa': booking.times.join(', '),
@@ -3696,6 +3816,7 @@
                     // Set column widths
                     const wscols = [
                         {wch: 25}, // Nama Penempah
+                        {wch: 30}, // Catatan Aktiviti
                         {wch: 20}, // Bilik
                         {wch: 15}, // Tarikh Tempahan
                         {wch: 30}, // Slot Masa
