@@ -1790,7 +1790,7 @@
                     <div class="form-group">
                         <label for="notes"><i class="fas fa-sticky-note"></i> Catatan (Kelas/Aktiviti yang akan dijalankan)</label>
                         <textarea id="notes" placeholder="Contoh: (2DVM ETN/ PEMBENTANGAN PB)
-@ (UNIT PUSAT SUMBER/ KURSUS BERSAMA UMT)." rows="3"></textarea>
+@ (UNIT PUSAT SUMBER/ KURSUS BERSAMA UMT)." rows="3" required></textarea>
                     </div>
 
                     <div class="form-group">
@@ -1915,7 +1915,7 @@
 
                             <div class="form-group">
                                 <label for="admin-booking-notes"><i class="fas fa-sticky-note"></i> Catatan (Kelas/Aktiviti yang akan dijalankan)</label>
-                                <textarea id="admin-booking-notes" placeholder="CATATAN." rows="3"></textarea>
+                                <textarea id="admin-booking-notes" placeholder="CATATAN." rows="3" required></textarea>
                             </div>
 
                             <div class="form-group">
@@ -2016,7 +2016,7 @@
                 </div>
                 <div class="form-group">
                     <label for="edit-notes">Catatan (Aktiviti yang akan dijalankan)</label>
-                    <textarea id="edit-notes" placeholder="Contoh: Perbincangan projek, Mesyuarat, Pembentangan, dll." rows="3"></textarea>
+                    <textarea id="edit-notes" placeholder="Contoh: Perbincangan projek, Mesyuarat, Pembentangan, dll." rows="3" required></textarea>
                 </div>
                 <div class="form-group">
                     <label for="edit-room">Bilik</label>
@@ -2641,6 +2641,15 @@
                     return;
                 }
                 
+                // ============================================
+                // VALIDASI BARU: CATATAN WAJIB DIISI
+                // ============================================
+                if (!notes || notes.trim() === '') {
+                    showMessage('❌ Sila isi catatan aktiviti yang akan dijalankan', 'error');
+                    notesInput.focus();
+                    return;
+                }
+                
                 // VALIDASI TARIKH MENGIKUT PERATURAN BARU
                 const dateValidation = validateBookingDate(date, false);
                 if (!dateValidation.isValid) {
@@ -2732,6 +2741,15 @@
                 // Validation
                 if (!name || !room || !date || timeCheckboxes.length === 0) {
                     showMessage('Sila isi semua maklumat yang diperlukan', 'error');
+                    return;
+                }
+                
+                // ============================================
+                // VALIDASI BARU: CATATAN WAJIB DIISI
+                // ============================================
+                if (!notes || notes.trim() === '') {
+                    showMessage('❌ Sila isi catatan aktiviti yang akan dijalankan', 'error');
+                    adminBookingNotes.focus();
                     return;
                 }
                 
@@ -3595,6 +3613,15 @@
                     date: document.getElementById('edit-date').value,
                     updatedAt: new Date().toISOString()
                 };
+                
+                // ============================================
+                // VALIDASI BARU: CATATAN WAJIB DIISI
+                // ============================================
+                if (!updatedBooking.notes || updatedBooking.notes.trim() === '') {
+                    showMessage('❌ Sila isi catatan aktiviti yang akan dijalankan', 'error');
+                    document.getElementById('edit-notes').focus();
+                    return;
+                }
                 
                 // VALIDASI TARIKH MENGIKUT PERATURAN BARU
                 const dateValidation = validateBookingDate(updatedBooking.date, false);
