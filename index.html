@@ -99,11 +99,41 @@
             background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
+        /* Logo di ATAS TENGAH - BARU */
+        .logo-header-top {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .logo-center-top {
+            height: 140px;
+            width: auto;
+            border-radius: 20px;
+            object-fit: contain;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            background: white;
+            padding: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Header content untuk mengatur konten di bawah logo */
+        .header-content {
+            width: 100%;
+        }
+
+        /* Logo Container */
         .logo-container {
             display: flex;
             align-items: center;
             gap: 20px;
             margin-bottom: 15px;
+            justify-content: flex-start;
         }
 
         .logo-icon {
@@ -123,6 +153,16 @@
             color: white;
         }
 
+        .header-text-container {
+            flex: 1;
+        }
+
+        /* Pastikan teks di header-content rata kiri */
+        .header-content .logo-container,
+        .header-content .header-text-container {
+            text-align: left;
+        }
+
         header h1 {
             font-family: 'Poppins', sans-serif;
             font-size: 2.8rem;
@@ -134,7 +174,7 @@
         .subtitle {
             font-size: 1.3rem;
             opacity: 0.9;
-            margin-bottom: 25px;
+            margin-bottom: 10px;
             font-weight: 300;
             max-width: 800px;
         }
@@ -1431,6 +1471,10 @@
             .availability-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .logo-center-top {
+                height: 120px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -1442,10 +1486,27 @@
                 font-size: 2rem;
             }
             
+            .logo-header-top {
+                margin-bottom: 20px;
+            }
+            
+            .logo-center-top {
+                height: 100px;
+            }
+            
             .logo-container {
                 flex-direction: column;
                 text-align: center;
                 gap: 15px;
+            }
+            
+            .header-content .logo-container,
+            .header-content .header-text-container {
+                text-align: center;
+            }
+            
+            .header-text-container {
+                width: 100%;
             }
             
             .header-info {
@@ -1539,34 +1600,48 @@
             .slot-list {
                 justify-content: center;
             }
+            
+            .logo-center-top {
+                height: 80px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
+        <!-- Header dengan Logo di ATAS TENGAH -->
         <header>
-            <div class="logo-container">
-                <div class="logo-icon">
-                    <i class="fas fa-calendar-check"></i>
-                </div>
-                <div>
-                    <h1> Tempahan  Bilik Khas VocKAF</h1>
-                    <p class="subtitle">Pusat Sumber  Alamanda (PSA) </p>
-                    <p class="subtitle">Bilik Multimedia Angsana(APD) </p>
-                    <p class="subtitle">Bilik Akses (Student Centered Learning) </p>
-                    <p class="subtitle"> - Pastikan Status Sistem website "ONLINE" sebelum membuat tempahan</p>
-                </div>
+            <!-- Logo di ATAS TENGAH -->
+            <div class="logo-header-top">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYXBsE9u9o8BI7JNZ4TqTabaa0QxVMcd5W6g&s" 
+                     alt="Logo VocKAF" 
+                     class="logo-center-top">
             </div>
             
-            <div class="header-info">
-                <div class="date-display">
-                    <i class="fas fa-calendar-day"></i>
-                    <span id="current-date"></span>
+            <div class="header-content">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="header-text-container">
+                        <h1> Tempahan  Bilik Khas VocKAF</h1>
+                        <p class="subtitle">*Pusat Sumber  Alamanda (PSA) </p>
+                        <p class="subtitle">*Bilik Multimedia Angsana(APD) </p>
+                        <p class="subtitle">*Bilik Akses (Student Centered Learning) </p>
+                        <p class="subtitle">- 
+                            Pastikan Status Sistem website "ONLINE" sebelum membuat tempahan</p>
+                    </div>
                 </div>
-                <div class="status-badge">
-                    <i class="fas fa-circle"></i>
-                    <span id="firebase-status">ONLINE</span>
+                
+                <div class="header-info">
+                    <div class="date-display">
+                        <i class="fas fa-calendar-day"></i>
+                        <span id="current-date"></span>
+                    </div>
+                    <div class="status-badge">
+                        <i class="fas fa-circle"></i>
+                        <span id="firebase-status">ONLINE</span>
+                    </div>
                 </div>
             </div>
         </header>
