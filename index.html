@@ -1788,9 +1788,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="notes"><i class="fas fa-sticky-note"></i> Catatan (Kelas/Aktiviti yang akan dijalankan)</label>
-                        <textarea id="notes" placeholder="Contoh: (2DVM ETN/ PEMBENTANGAN PB)
-@ (UNIT PUSAT SUMBER/ KURSUS BERSAMA UMT)." rows="3" required></textarea>
+                        <label for="notes"><i class="fas fa-sticky-note"></i>(Kelas@Unit/Aktiviti yang akan dijalankan)</label>
+                        <textarea id="notes" placeholder="Contoh: 
+(2DVM ETN/ PEMBENTANGAN PB)
+(JPP/ TAKLIMAT PENGAWAS PEPERIKSAAN)." rows="3" required></textarea>
                     </div>
 
                     <div class="form-group">
@@ -1803,7 +1804,8 @@
                                     <i class="fas fa-book-reader"></i>
                                     <div class="room-info">
                                         <span>Pusat Sumber Alamanda</span>
-                                        <p>Kapasiti: 30 orang | Kelengkapan: komputer,pencetak,wifi buku rujukan dan lain-lain</p>
+                                        <p>Kapasiti: 30 orang | Kelengkapan: komputer,TV,pencetak,wifi,buku rujukan dan lain-lain</p>
+                                        <p>*PDPC tidak dibenarkan</p>
                                     </div>
                                 </label>
                                 
@@ -1824,7 +1826,7 @@
                                     <i class="fas fa-graduation-cap"></i>
                                     <div class="room-info">
                                         <span>Bilik Akses</span>
-                                        <p>Kapasiti: 10 orang | Kelengkapan: Meja serta kerusi,Wi-Fi,komputer,pencetak dan lain-lain</p>
+                                        <p>Kapasiti: 10 orang | Kelengkapan: Meja serta kerusi,wifi,komputer,pencetak dan lain-lain</p>
                                     </div>
                                 </label>
                             </div>
@@ -3120,7 +3122,7 @@
                         }
                         
                         // Add admin only badge if needed
-                        const adminBadge = room.adminOnly ? '<div style="margin-top: 10px;"><span style="background: var(--danger); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;"></span></div>' : '';
+                        const adminBadge = room.adminOnly ? '<div style="margin-top: 10px;"><span style="background: var(--danger); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">PDPC TIDAK DIBENARKAN</span></div>' : '';
                         
                         card.innerHTML = `
                             <div class="availability-card-header">
