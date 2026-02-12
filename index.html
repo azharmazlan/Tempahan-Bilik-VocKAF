@@ -1970,6 +1970,26 @@
                         </button>
                     </div>
 
+                    <!-- ==================== TAMBAHAN: URUS DATA BULANAN ==================== -->
+                    <div class="admin-bulk-actions" style="margin-bottom: 30px;">
+                        <h3 style="color: var(--primary); border-bottom: 2px solid var(--gray-light); padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-calendar-alt"></i> Urus Data Bulanan
+                        </h3>
+                        <div class="filter-section" style="background: rgba(147, 51, 234, 0.05); border: 1px solid rgba(147, 51, 234, 0.2);">
+                            <label for="month-year-select" style="min-width: 200px;">
+                                <i class="fas fa-calendar"></i> Pilih Bulan & Tahun:
+                            </label>
+                            <input type="month" id="month-year-select" style="flex: 1; max-width: 300px;" value="2025-02">
+                            <button id="export-monthly-excel" class="btn-admin-action" style="background: linear-gradient(135deg, #9333ea 0%, #a855f7 100%); margin-bottom: 0;">
+                                <i class="fas fa-file-excel"></i> Eksport Excel Bulanan
+                            </button>
+                            <button id="delete-monthly-data" class="btn-admin-action" style="background: linear-gradient(135deg, var(--danger) 0%, #f87171 100%); margin-bottom: 0;">
+                                <i class="fas fa-trash-alt"></i> Hapus Data Bulanan
+                            </button>
+                        </div>
+                    </div>
+                    <!-- ==================== TAMAT TAMBAHAN ==================== -->
+
                     <div class="admin-bookings">
                         <h3><i class="fas fa-edit"></i> Urus Tempahan</h3>
                         <div id="admin-bookings-list"></div>
@@ -2150,6 +2170,12 @@
             const systemStatusEl = document.getElementById('system-status');
             const todayBookingsDetail = document.getElementById('today-bookings-detail');
             const roomStatusList = document.getElementById('room-status-list');
+            
+            // ==================== TAMBAHAN: Elemen untuk Urus Data Bulanan ====================
+            const monthYearSelect = document.getElementById('month-year-select');
+            const exportMonthlyExcelBtn = document.getElementById('export-monthly-excel');
+            const deleteMonthlyDataBtn = document.getElementById('delete-monthly-data');
+            // ==================== TAMAT TAMBAHAN ====================
             
             // State variables
             let isAdminLoggedIn = false;
@@ -3876,6 +3902,163 @@
                     showMessage('❌ Ralat memuat turun data', 'error');
                 }
             });
+            
+            // ==================== TAMBAHAN: FUNGSI EKSPORT EXCEL BULANAN ====================
+            exportMonthlyExcelBtn.addEventListener('click', async () => {
+                if (!monthYearSelect.value) {
+                    showMessage('❌ Sila pilih bulan dan tahun', 'error');
+                    return;
+                }
+                
+                const [year, month] = monthYearSelect.value.split('-');
+                const monthName = new Date(year, month - 1).toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
+                
+                showLoading(`Menyediakan fail Excel untuk bulan ${monthName}...`);
+                
+                try {
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (!snapshot.exists()) {
+                        hideLoading();
+                        showMessage('ℹ️ Tiada data untuk dimuat turun', 'info');
+                        return;
+                    }
+                    
+                    const bookings = snapshot.val();
+                    const data = [];
+                    const filterPrefix = `${year}-${month.padStart(2, '0')}`; // contoh: "2025-02"
+                    
+                    for (const bookingId in bookings) {
+                        const booking = bookings[bookingId];
+                        // Filter booking yang date bermula dengan tahun-bulan yang dipilih
+                        if (booking.date && booking.date.startsWith(filterPrefix)) {
+                            data.push({
+                                'Nama Penempah': booking.name,
+                                'Catatan Aktiviti': booking.notes || '',
+                                'Bilik': booking.room,
+                                'Tarikh Tempahan': booking.date,
+                                'Slot Masa': booking.times.join(', '),
+                                'Jenis Tempahan': booking.isAdminBooking ? 'Pentadbir' : 'Biasa',
+                                'Tarikh Dicipta': booking.createdAt ? new Date(booking.createdAt).toLocaleString('ms-MY') : 'N/A',
+                                'Tarikh Kemaskini': booking.updatedAt ? new Date(booking.updatedAt).toLocaleString('ms-MY') : 'Tidak pernah dikemaskini',
+                                'ID Tempahan': bookingId
+                            });
+                        }
+                    }
+                    
+                    if (data.length === 0) {
+                        hideLoading();
+                        showMessage(`ℹ️ Tiada tempahan pada bulan ${monthName}`, 'info');
+                        return;
+                    }
+                    
+                    // Create worksheet
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    
+                    // Set column widths
+                    const wscols = [
+                        {wch: 25}, {wch: 30}, {wch: 20}, {wch: 15},
+                        {wch: 30}, {wch: 15}, {wch: 25}, {wch: 25}, {wch: 20}
+                    ];
+                    ws['!cols'] = wscols;
+                    
+                    // Create workbook
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, `Tempahan ${filterPrefix}`);
+                    
+                    // Generate Excel file
+                    XLSX.writeFile(wb, `tempahan-vockaf-${filterPrefix}.xlsx`);
+                    
+                    hideLoading();
+                    showMessage(`✅ Berjaya memuat turun ${data.length} tempahan untuk bulan ${monthName}`, 'success');
+                    
+                    exportMonthlyExcelBtn.classList.add('success-flash');
+                    setTimeout(() => exportMonthlyExcelBtn.classList.remove('success-flash'), 800);
+                } catch (error) {
+                    console.error('Error exporting monthly Excel:', error);
+                    hideLoading();
+                    showMessage('❌ Ralat memuat turun data bulanan', 'error');
+                }
+            });
+            // ==================== TAMAT TAMBAHAN ====================
+            
+            // ==================== TAMBAHAN: FUNGSI HAPUS DATA BULANAN ====================
+            deleteMonthlyDataBtn.addEventListener('click', async () => {
+                if (!monthYearSelect.value) {
+                    showMessage('❌ Sila pilih bulan dan tahun', 'error');
+                    return;
+                }
+                
+                const [year, month] = monthYearSelect.value.split('-');
+                const monthName = new Date(year, month - 1).toLocaleString('ms-MY', { month: 'long', year: 'numeric' });
+                
+                if (!confirm(`⚠️ Adakah anda pasti untuk menghapus SEMUA tempahan pada bulan ${monthName}? Tindakan ini tidak boleh dibatalkan.`)) {
+                    return;
+                }
+                
+                // Pengesahan kedua untuk keselamatan
+                if (!confirm(`SAYA PASTI - Hapus semua data tempahan bulan ${monthName}`)) {
+                    return;
+                }
+                
+                showLoading(`Memadam data tempahan bulan ${monthName}...`);
+                
+                try {
+                    const snapshot = await database.ref('bookings').once('value');
+                    
+                    if (!snapshot.exists()) {
+                        hideLoading();
+                        showMessage('ℹ️ Tiada data untuk dipadam', 'info');
+                        return;
+                    }
+                    
+                    const bookings = snapshot.val();
+                    const deletePromises = [];
+                    const filterPrefix = `${year}-${month.padStart(2, '0')}`;
+                    let deletedCount = 0;
+                    
+                    for (const bookingId in bookings) {
+                        const booking = bookings[bookingId];
+                        if (booking.date && booking.date.startsWith(filterPrefix)) {
+                            deletePromises.push(database.ref(`bookings/${bookingId}`).remove());
+                            deletedCount++;
+                            
+                            // Clear cache untuk tarikh ini
+                            const cacheKey = `${booking.room}-${booking.date}`;
+                            delete bookedTimesCache[cacheKey];
+                        }
+                    }
+                    
+                    await Promise.all(deletePromises);
+                    
+                    hideLoading();
+                    
+                    if (deletedCount > 0) {
+                        showMessage(`✅ Berjaya memadam ${deletedCount} tempahan untuk bulan ${monthName}`, 'success');
+                        
+                        // Visual feedback
+                        deleteMonthlyDataBtn.classList.add('success-flash');
+                        setTimeout(() => deleteMonthlyDataBtn.classList.remove('success-flash'), 800);
+                        
+                        // Update stats and UI
+                        loadStats();
+                        updateLastUpdateTime();
+                        
+                        // Refresh admin list dan availability
+                        if (isAdminLoggedIn) {
+                            loadAllBookingsForAdmin();
+                        }
+                        loadRoomAvailability(getTodayString());
+                    } else {
+                        showMessage(`ℹ️ Tiada tempahan pada bulan ${monthName}`, 'info');
+                    }
+                } catch (error) {
+                    console.error('Error deleting monthly data:', error);
+                    hideLoading();
+                    showMessage('❌ Ralat memadam data bulanan', 'error');
+                }
+            });
+            // ==================== TAMAT TAMBAHAN ====================
             
             // Clear old data (30+ days)
             clearOldDataBtn.addEventListener('click', async () => {
